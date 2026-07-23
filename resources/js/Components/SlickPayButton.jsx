@@ -8,7 +8,7 @@ import { Link } from '@inertiajs/react';
  */
 export function SlickPayButton({ applicationId, amount }) {
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   async function handlePay() {
     setLoading(true);
@@ -46,10 +46,10 @@ export function SlickPayButton({ applicationId, amount }) {
         )}
       </button>
 
+      {/* Badges de paiement - Le badge Slick-Pay a été retiré */}
       <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
         <Badge icon="🔒" text="Paiement sécurisé SATIM" />
         <Badge icon="🏦" text="CIB & EDAHABIA" />
-        <Badge icon="⚡" text="via Slick-Pay" />
       </div>
 
       {error && (
@@ -68,12 +68,57 @@ function Badge({ icon, text }) {
 }
 
 /**
- * SuccessStep mis à jour — affiche le prix total et le nombre de voyageurs.
+ * SuccessStep mis à jour — Intègre le choix de méthode (En ligne ou En agence)
  */
 export function SuccessStep({ reference, applicationId, amount, nbTravelers = 1 }) {
+  const [payAtAgency, setPayAtAgency] = useState(false);
+
+  // Écran d'accueil de remerciement si l'utilisateur choisit de payer en agence
+  if (payAtAgency) {
+    return (
+      <div className="max-w-[520px] mx-auto text-center py-10 px-4">
+        <div className="relative w-20 h-20 mx-auto mb-6">
+          <div className="absolute inset-0 rounded-full bg-[#C9A84C]/10 animate-ping" />
+          <div className="relative w-20 h-20 rounded-full bg-[#C9A84C]/15 flex items-center justify-center text-[#C9A84C] text-3xl">💼</div>
+        </div>
+
+        <h2 className="mb-2 text-[#00143C]">Demande enregistrée !</h2>
+        <p className="text-[#8892A4] mb-6 text-sm">
+          Votre choix de paiement en agence a bien été pris en compte pour le dossier <strong className="text-[#00143C]">{reference}</strong>.
+        </p>
+
+        {/* Détails des étapes suivantes en agence */}
+        <div className="bg-white rounded-2xl border border-[#EDE9E0] p-6 mb-8 text-left shadow-[var(--shadow-soft)]">
+          <h4 className="font-semibold text-[#00143C] mb-4 flex items-center gap-2 text-sm">
+            <span className="text-[#C9A84C]">📅</span>
+            Comment finaliser votre dossier ?
+          </h4>
+          <ul className="space-y-4 text-sm text-[#8892A4]">
+            <li className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-[#0F6E56]/10 text-[#0F6E56] flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
+              <span>Un conseiller d'Aelia Travel va vous appeler ou vous envoyer un e-mail sous <strong>24 heures</strong> pour valider vos documents.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-[#0F6E56]/10 text-[#0F6E56] flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
+              <span>Nous planifierons ensemble votre rendez-vous de dépôt et de règlement.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-[#0F6E56]/10 text-[#0F6E56] flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
+              <span>Vous pourrez régler directement au niveau de notre agence (en espèces ou par chèque).</span>
+            </li>
+          </ul>
+        </div>
+
+        <Link href="/" className="inline-block text-sm text-[#8892A4] hover:text-[#00143C] transition-colors">
+          ← Retour à l'accueil
+        </Link>
+      </div>
+    );
+  }
+
+  // Écran par défaut (Choix de paiement en ligne avec option alternative d'agence)
   return (
     <div className="max-w-[520px] mx-auto text-center py-10 px-4">
-      {/* Icône animée */}
       <div className="relative w-20 h-20 mx-auto mb-6">
         <div className="absolute inset-0 rounded-full bg-[#0F6E56]/10 animate-ping" />
         <div className="relative w-20 h-20 rounded-full bg-[#0F6E56]/15 flex items-center justify-center text-[#0F6E56] text-3xl">✓</div>
@@ -84,23 +129,22 @@ export function SuccessStep({ reference, applicationId, amount, nbTravelers = 1 
         Votre dossier pour <strong>{nbTravelers} voyageur{nbTravelers > 1 ? 's' : ''}</strong> a bien été enregistré.
       </p>
 
-      {/* Référence */}
+      {/* Référence dossier */}
       <div className="inline-block px-8 py-3 rounded-2xl bg-[#00143C] text-[#C9A84C] text-xl font-semibold mb-6 mono tracking-wider shadow-[0_8px_32px_rgba(0,20,60,0.2)]">
         {reference}
       </div>
 
-      {/* Séparateur */}
       <div className="my-5 flex items-center gap-4">
         <div className="flex-1 h-px bg-[#EDE9E0]" />
-        <span className="text-[#8892A4] text-sm font-medium">Procédez au paiement</span>
+        <span className="text-[#8892A4] text-xs font-semibold uppercase tracking-wider">Options de règlement</span>
         <div className="flex-1 h-px bg-[#EDE9E0]" />
       </div>
 
-      {/* Bloc paiement */}
-      <div className="bg-white rounded-2xl border border-[#EDE9E0] p-5 mb-5 text-left shadow-[var(--shadow-soft)]">
+      {/* Bloc paiement & Actions */}
+      <div className="bg-white rounded-2xl border border-[#EDE9E0] p-6 mb-6 text-left shadow-[var(--shadow-soft)]">
         <h4 className="font-semibold text-[#00143C] mb-1 flex items-center gap-2 text-sm">
           <span className="text-[#C9A84C]">💳</span>
-          Paiement en ligne sécurisé
+          Option 1 : Paiement en ligne immédiat
         </h4>
         {nbTravelers > 1 && (
           <p className="text-[#8892A4] text-xs mb-3">
@@ -108,17 +152,33 @@ export function SuccessStep({ reference, applicationId, amount, nbTravelers = 1 
           </p>
         )}
         <p className="text-[#8892A4] text-sm mb-4">
-          Réglez par <strong>carte CIB</strong> ou <strong>EDAHABIA</strong>.
+          Réglez de manière sécurisée par carte CIB ou EDAHABIA.
         </p>
+        
+        {/* Bouton de paiement SATIM */}
         <SlickPayButton applicationId={applicationId} amount={amount} />
-      </div>
 
-      {/* Alternative agence */}
-      <div className="bg-[#F7F5F0] border border-[#EDE9E0] rounded-2xl px-5 py-4 mb-4 text-center">
-        <p className="text-[#8892A4] text-sm leading-relaxed">
-          💼 <strong className="text-[#00143C]">Vous préférez payer en agence ?</strong><br />
-          Nous vous contacterons dans les prochaines heures pour finaliser votre dossier.
+        <div className="my-5 h-px bg-[#EDE9E0]" />
+
+        <h4 className="font-semibold text-[#00143C] mb-1 flex items-center gap-2 text-sm">
+          <span className="text-[#0F6E56]">💼</span>
+          Option 2 : Paiement en agence
+        </h4>
+        <p className="text-[#8892A4] text-sm mb-4">
+          Enregistrez votre dossier et venez finaliser votre règlement directement dans nos locaux.
         </p>
+
+        {/* Nouveau bouton de redirection interne pour l'agence */}
+        <button
+          type="button"
+          onClick={() => setPayAtAgency(true)}
+          className="w-full py-3.5 rounded-full font-semibold text-[#00143C] bg-[#F7F5F0] border border-[#EDE9E0] hover:bg-[#EDE9E0] transition-all duration-300 text-sm flex items-center justify-center gap-2"
+        >
+          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H5a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          Choisir le paiement en agence
+        </button>
       </div>
 
       <Link href="/" className="inline-block text-sm text-[#8892A4] hover:text-[#00143C] transition-colors">
