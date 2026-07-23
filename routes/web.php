@@ -52,18 +52,6 @@ Route::get('/admin/{any?}', fn () => Inertia::render('Admin/App'))
 
 /*
 |--------------------------------------------------------------------------
-| Chargily - Pages de retour paiement
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/evisa/payment/success', [EvisaPaymentController::class, 'success'])
-    ->name('evisa.payment.success');
-
-Route::get('/evisa/payment/failure', [EvisaPaymentController::class, 'failure'])
-    ->name('evisa.payment.failure');
-
-/*
-|--------------------------------------------------------------------------
 |  API — CONTENU PUBLIC (lecture)
 |--------------------------------------------------------------------------
 */
@@ -77,24 +65,6 @@ Route::prefix('api')->group(function () {
     Route::get('/evisa/countries/{slug}', [EvisaPublicController::class, 'country']);
     Route::post('/evisa/apply', [EvisaPublicController::class, 'apply'])
         ->middleware('throttle:5,1');
-
-/*
-|--------------------------------------------------------------------------
-| Chargily - Paiement
-|--------------------------------------------------------------------------
-*/
-
-Route::post('/evisa/pay/{application}', [EvisaPaymentController::class, 'initiate'])
-    ->middleware('throttle:10,1')
-    ->name('evisa.payment.initiate');
-
-Route::post('/evisa/pay-by-ref/{reference}', function ($reference) {
-
-    $app = \App\Models\EvisaApplication::where('reference', $reference)->firstOrFail();
-
-    return app(EvisaPaymentController::class)->initiate($app);
-
-})->middleware('throttle:10,1');
 
     // ---- Omra public ----
     Route::get('/omra/departures', [OmraPublicController::class, 'departures']);
