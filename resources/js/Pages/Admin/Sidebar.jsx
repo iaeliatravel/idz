@@ -21,6 +21,8 @@ const LINKS = [
     { to: '/admin/content/home', label: 'Page Accueil', icon: '🏠' },
     { to: '/admin/content/evisa', label: 'Page eVisa', icon: '🛂' },
     { to: '/admin/content/omra', label: 'Page Omra', icon: '🕌' },
+    { to: '/admin/content/header', label: 'En-tête (Header)', icon: '🔝' },  // <-- AJOUTÉ
+    { to: '/admin/content/footer', label: 'Pied de page (Footer)', icon: '🔻' },  // <-- AJOUTÉ
     { to: '/admin/logos', label: 'Logo du site', icon: '🖼' },
   ]},
   { section: 'Général', items: [

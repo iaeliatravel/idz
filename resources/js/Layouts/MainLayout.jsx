@@ -4,13 +4,15 @@ import axios from 'axios';
 import Logo from '../Components/Logo';
 
 // Hook qui charge le contenu d'une "page" depuis site_content
+// Tout en haut de resources/js/Layouts/MainLayout.jsx
 function useSiteSection(page, sectionKey) {
   const [data, setData] = useState({});
   useEffect(() => {
     axios.get(`/api/content/${page}`)
       .then(({ data: sections }) => {
-        const section = sections.find((s) => s.section_key === sectionKey);
-        if (section?.content) setData(section.content);
+        // 'sections' est un objet indexé par clé (ex: { nav: {...} })
+        const sectionContent = sections[sectionKey];
+        if (sectionContent) setData(sectionContent);
       })
       .catch(() => {});
   }, [page, sectionKey]);
