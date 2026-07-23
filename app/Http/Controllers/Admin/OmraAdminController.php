@@ -96,7 +96,7 @@ class OmraAdminController extends Controller
             'latitude'       => ['nullable','numeric'],
             'longitude'      => ['nullable','numeric'],
             'description'    => ['nullable','string'],
-            'is_active' => ['nullable','boolean']
+            'is_active' => ['nullable','boolean'], 'cover_image_url' => ['nullable','string','max:500'],
         ]);
     }
 
