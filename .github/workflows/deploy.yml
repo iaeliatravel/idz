@@ -16,6 +16,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
+          port: 5804
           script: |
             cd ~/aelia_travel
             git pull origin main
