@@ -24,3 +24,6 @@ jobs:
             php artisan optimize:clear
             php artisan config:cache
             php artisan route:cache
+
+            rm -rf ~/public_html/build/*
+            cp -R ~/aelia_travel/public/build/* ~/public_html/build/
