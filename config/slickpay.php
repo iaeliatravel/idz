@@ -2,19 +2,25 @@
 
 return [
     /*
-    |--------------------------------------------------------------------------
     | Mode Sandbox / Production
-    |--------------------------------------------------------------------------
-    | true  → devapi.slick-pay.com  (tests, pas de vrai débit)
-    | false → prodapi.slick-pay.com (production, vrai paiement CIB/EDAHABIA)
     */
     'sandbox' => (bool) env('SLICKPAY_SANDBOX', true),
 
     /*
-    |--------------------------------------------------------------------------
     | Clé publique SlickPay
-    |--------------------------------------------------------------------------
-    | Récupérable depuis votre dashboard SlickPay → section API Keys
     */
     'public_key' => env('SLICKPAY_PUBLIC_KEY', ''),
+
+    /*
+    | UUID du compte bancaire spécifique (Optionnel)
+    | Laissez vide pour utiliser le compte par défaut configuré sur SlickPay.
+    */
+    'account' => env('SLICKPAY_ACCOUNT_UUID', ''),
+
+    /*
+    | Répartition des frais de commission (0 - 100)
+    | 0   = L'agence absorbe 100% de la commission (le client paie le prix exact).
+    | 100 = Le client paie 100% de la commission en plus du prix du visa.
+    */
+    'fees' => (int) env('SLICKPAY_FEES', 0), 
 ];
