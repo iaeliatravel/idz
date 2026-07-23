@@ -74,7 +74,7 @@ Route::prefix('api')->group(function () {
 
     // ---- eVisa public ----
     Route::get('/evisa/countries', [EvisaPublicController::class, 'countries']);
-    Route::get('/evisa/countries/{slug}', [EvisaPublicController::class, 'show']);
+    Route::get('/evisa/countries/{slug}', [EvisaPublicController::class, 'country']);
     Route::post('/evisa/apply', [EvisaPublicController::class, 'apply'])
         ->middleware('throttle:5,1');
 
