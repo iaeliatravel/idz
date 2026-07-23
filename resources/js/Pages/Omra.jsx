@@ -207,7 +207,7 @@ export default function Omra() {
             </div>
 
             {/* Compteurs — grille 2×2 sur mobile */}
-            <div className="p-6 border-b border-[#EDE9E0]">
+              <div className="p-6 border-b border-[#EDE9E0]">
               <label className="text-xs font-bold text-[#1A1A2E] block mb-3" style={{ fontFamily: 'Tajawal, sans-serif' }}>عدد المسافرين</label>
               <div className="grid grid-cols-2 gap-3">
                 {[
@@ -216,20 +216,32 @@ export default function Omra() {
                   { key: 'childNoBed',label: 'طفل (بدون سرير)',   min: 0 },
                   { key: 'infants',   label: 'رضيع',              min: 0 },
                 ].map(({ key, label, min }) => (
-                  <div key={key} className="flex items-center justify-between bg-white rounded-xl p-3 border border-[#EDE9E0] gap-3">
-                    {/* RETRAIT de truncate et ml-2 / AJOUT de whitespace-nowrap et mr-2 pour le RTL */}
-                    <span className="text-xs sm:text-sm font-medium text-[#1A1A2E] whitespace-nowrap mr-2">
+                  <div key={key} className="flex flex-col items-center justify-center bg-white rounded-xl p-3 border border-[#EDE9E0] gap-3">
+                    
+                    {/* Label centré en haut */}
+                    <span className="text-sm font-bold text-[#1A1A2E] text-center w-full">
                       {label}
                     </span>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    
+                    {/* Boutons centrés en bas - dir="ltr" force le (-) à gauche et (+) à droite */}
+                    <div className="flex items-center justify-center gap-4 w-full" dir="ltr">
                       <button type="button"
                         onClick={() => setCounters((c) => ({ ...c, [key]: Math.max(min, c[key] - 1) }))}
-                        className="w-7 h-7 rounded-lg bg-[#F7F5F0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors text-lg leading-none flex items-center justify-center">−</button>
-                      <span className="w-5 text-center font-bold text-[#00143C] mono text-sm">{counters[key]}</span>
+                        className="w-9 h-9 rounded-lg bg-[#F7F5F0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors text-xl flex items-center justify-center select-none shadow-sm border border-[#EDE9E0]">
+                        −
+                      </button>
+                      
+                      <span className="w-4 text-center font-bold text-[#00143C] mono text-lg select-none">
+                        {counters[key]}
+                      </span>
+                      
                       <button type="button"
                         onClick={() => setCounters((c) => ({ ...c, [key]: c[key] + 1 }))}
-                        className="w-7 h-7 rounded-lg bg-[#F7F5F0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors text-lg leading-none flex items-center justify-center">+</button>
+                        className="w-9 h-9 rounded-lg bg-[#F7F5F0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors text-xl flex items-center justify-center select-none shadow-sm border border-[#EDE9E0]">
+                        +
+                      </button>
                     </div>
+
                   </div>
                 ))}
               </div>
