@@ -11,9 +11,22 @@ class EvisaApplication extends Model
     protected $table = 'evisa_applications';
 
     protected $fillable = [
-        'reference', 'country_id', 'option_id', 'first_name', 'last_name',
-        'email', 'phone', 'passport_number', 'travel_date', 'nb_travelers',
-        'message', 'sale_price_dzd', 'cost_price_dzd', 'status', 'admin_notes',
+        'reference', 
+        'country_id', 
+        'option_id', 
+        'first_name', 
+        'last_name',
+        'email', 
+        'phone', 
+        'passport_number', 
+        'travel_date', 
+        'nb_travelers',
+        'message', 
+        'sale_price_dzd', 
+        'sale_price_per_person_dzd', // <-- Ajoutez cette ligne ici
+        'cost_price_dzd', 
+        'status', 
+        'admin_notes',
     ];
 
     protected function casts(): array

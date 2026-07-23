@@ -286,9 +286,19 @@ function StepForm({ country, option, onBack, onSuccess }) {
         nb_travelers:  data.nb_travelers,
       });
     } catch (err) {
-      setError(err.response?.data?.error || err.response?.data?.errors
-        ? Object.values(err.response?.data?.errors || {}).flat().join(' — ')
-        : 'Erreur lors de la soumission. Merci de réessayer.');
+      if (err.response?.data?.error) {
+        // Affiche les erreurs personnalisées du serveur (ex: anti-spam)
+        setError(err.response.data.error);
+      } else if (err.response?.data?.errors) {
+        // Affiche les erreurs de validation de formulaire Laravel (champs requis, etc.)
+        setError(Object.values(err.response.data.errors).flat().join(' — '));
+      } else if (err.response?.data?.message) {
+        // Affiche les messages d'exception système
+        setError(err.response.data.message);
+      } else {
+        // Message de secours par défaut
+        setError('Erreur lors de la soumission. Merci de réessayer.');
+      }
     } finally {
       setSubmitting(false);
     }
