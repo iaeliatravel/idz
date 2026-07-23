@@ -1,0 +1,125 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\EvisaApplication;
+use App\Models\EvisaPayment;
+use App\Services\SlickPayService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
+class EvisaPaymentController extends Controller
+{
+    public function __construct(private SlickPayService $slickpay) {}
+
+    // ===================================================================
+    //  POST /api/evisa/pay/{application}
+    //  Crée une facture SlickPay et retourne l'URL directe SATIM.
+    //  Le frontend redirige immédiatement vers cette URL — pas de page
+    //  intermédiaire, le client atterrit directement sur SATIM.
+    // ===================================================================
+    public function initiate(EvisaApplication $application)
+    {
+        // Refuse si la demande est dans un état terminal
+        if (in_array($application->status, ['approuve', 'annule', 'refuse'])) {
+            return response()->json([
+                'error' => 'Cette demande ne peut plus être payée.',
+            ], 422);
+        }
+
+        // Si un paiement pending existe déjà, renvoie l'URL existante
+        $existing = EvisaPayment::where('application_id', $application->id)
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
+
+        if ($existing?->payment_url) {
+            return response()->json([
+                'payment_url' => $existing->payment_url,
+            ]);
+        }
+
+        $application->load(['country', 'option']);
+
+        try {
+            $result = $this->slickpay->createInvoice([
+                'amount'       => (float) $application->sale_price_dzd,
+                'name'         => "{$application->first_name} {$application->last_name}",
+                'phone'        => $application->phone,
+                'email'        => $application->email,
+                'address'      => 'Algérie',
+                'callback_url' => url('/api/evisa/payment/callback'),
+                'back_url'     => url('/evisa/payment/result'),
+            ]);
+
+            EvisaPayment::create([
+                'application_id'     => $application->id,
+                'slickpay_invoice_id'=> $result['invoice_id'],
+    'firstname'    => $application->first_name,
+    'lastname'     => $application->last_name,                'payment_url'        => $result['payment_url'],
+                'amount_dzd'         => $application->sale_price_dzd,
+                'status'             => 'pending',
+            ]);
+
+            return response()->json([
+                'payment_url' => $result['payment_url'],
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('[SlickPay] Erreur initiation paiement', [
+                'application_id' => $application->id,
+                'error'          => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'error' => 'Impossible d\'initier le paiement. Merci de réessayer.',
+            ], 500);
+        }
+    }
+
+    // ===================================================================
+    //  GET /evisa/payment/result
+    //  Page de retour client après paiement sur SATIM.
+    //  SlickPay redirige ici avec ?invoice_id=xxx en paramètre.
+    //  On vérifie le statut réel auprès de SlickPay avant d'afficher.
+    // ===================================================================
+    public function result(Request $request)
+    {
+        $invoiceId = (int) $request->query('invoice_id');
+        $payment   = null;
+        $status    = 'unknown';
+
+        if ($invoiceId) {
+            $payment = EvisaPayment::where('slickpay_invoice_id', $invoiceId)->first();
+
+            // Vérification du statut en temps réel (le callback peut
+            // ne pas encore être arrivé à cet instant)
+            try {
+                $liveStatus = $this->slickpay->getInvoiceStatus($invoiceId);
+
+                if ($liveStatus) {
+                    $status = $liveStatus;
+
+                    // Mise à jour optimiste si payé et callback non encore reçu
+                    if ($liveStatus === 'paid' && $payment && ! $payment->isPaid()) {
+                        $payment->update(['status' => 'paid', 'paid_at' => now()]);
+                        $payment->application?->update(['status' => 'en_cours']);
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('[SlickPay] Vérification statut retour échouée', [
+                    'invoice_id' => $invoiceId,
+                    'error'      => $e->getMessage(),
+                ]);
+                $status = $payment?->status ?? 'unknown';
+            }
+        }
+
+        return \Inertia\Inertia::render('Evisa/PaymentResult', [
+            'status'    => $status,
+            'reference' => $payment?->application?->reference,
+            'amount'    => $payment?->amount_dzd,
+        ]);
+    }
+}
