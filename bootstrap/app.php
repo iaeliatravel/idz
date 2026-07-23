@@ -24,10 +24,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/evisa/payment/callback',
         ]);
-        $middleware->validateCsrfTokens(except: [
-            'api/evisa/payment/callback',
-            'api/evisa/apply', // <-- AJOUTEZ CETTE LIGNE TEMPORAIREMENT
-        ]);
     })
     
     ->withMiddleware(function ($middleware) {
