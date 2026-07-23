@@ -162,7 +162,7 @@ class EvisaPublicController extends Controller
 
         $application->load(['country', 'option']);
 
-        // Emails
+        /* // Emails
         try {
             $alertTo = \App\Models\Setting::get('alert_email', config('mail.from.address'));
             Mail::to($alertTo)->send(new EvisaApplicationAlert($application));
@@ -170,7 +170,7 @@ class EvisaPublicController extends Controller
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('[eVisa] Email envoi échoué: ' . $e->getMessage());
         }
-
+        */
         return response()->json([
             'success'        => true,
             'reference'      => $application->reference,

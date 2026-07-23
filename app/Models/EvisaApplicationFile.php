@@ -12,7 +12,7 @@ class EvisaApplicationFile extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'application_id', 'document_label', 'file_path', 'original_name', 'uploaded_at',
+        'application_id', 'traveler_id', 'document_label', 'file_path', 'original_name', 'uploaded_at',
     ];
 
     protected function casts(): array
