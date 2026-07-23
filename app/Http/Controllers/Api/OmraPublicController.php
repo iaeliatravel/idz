@@ -54,6 +54,7 @@ class OmraPublicController extends Controller
                     'arrival_airport' => $d->arrival_airport,
                     'airline_name' => $d->airline->name ?? null,
                     'airline_logo' => $d->airline->logo_url ?? null,
+                    'cover_image_url' => $d->cover_image_url, // <-- AJOUTEZ CETTE LIGNE
                     'nb_packages' => $packages->count(),
                     'from_price_dzd' => $lowestPrice,
                 ];

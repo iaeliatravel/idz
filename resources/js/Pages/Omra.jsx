@@ -284,7 +284,8 @@ export default function Omra() {
 /* ── DepartureCard ── */
 function DepartureCard({ d, index, onDetail }) {
   const [hovered, setHovered] = useState(false);
-  const bgImage = `https://images.unsplash.com/photo-${['1591604021695-0c69b7c05981','1564769625392-651b94fad3ea','1588345921523-c2dcdb7f1dcd','1609137144813-7d9921338f24','1578683010236-d716f9a3f461'][index % 5]}?w=800&q=80&auto=format&fit=crop`;
+    const fallbackImage = `https://images.unsplash.com/photo-1579305796288-c534f6cf17ab?w=800&q=80&auto=format&fit=crop`;
+    const bgImage = d.cover_image_url || fallbackImage;
   return (
     <div className="omra-card card-hover cursor-pointer" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onClick={onDetail}>
       <div className="relative overflow-hidden h-52">
