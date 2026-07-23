@@ -52,38 +52,67 @@ export default function EvisaApplications() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500 text-xs uppercase">
             <tr>
-              <th className="p-3">Référence</th><th className="p-3">Client</th><th className="p-3">Pays</th>
-              <th className="p-3">Option</th><th className="p-3">Prix</th><th className="p-3">Paiement</th>{/* <-- AJOUTÉ */}
-              <th className="p-3">Option</th><th className="p-3">Prix vente</th><th className="p-3">Bénéfice</th>
-              <th className="p-3">Statut</th><th className="p-3">Date</th><th className="p-3"></th>
+              <th className="p-3">Référence</th>
+              <th className="p-3">Client</th>
+              <th className="p-3">Pays</th>
+              <th className="p-3">Option</th>
+              <th className="p-3">Prix vente</th>
+              <th className="p-3">Bénéfice</th>
+              <th className="p-3">Paiement</th> {/* 1. Colonne de paiement ajoutée */}
+              <th className="p-3">Statut Dossier</th>
+              <th className="p-3">Date</th>
+              <th className="p-3"></th> {/* Colonne d'actions */}
             </tr>
           </thead>
           <tbody>
             {filtered.length ? filtered.map((a) => (
               <tr key={a.id} className="border-t hover:bg-gray-50">
                 <td className="p-3 font-bold">{a.reference}</td>
-                <td className="p-3">{a.first_name} {a.last_name}<br /><small className="text-gray-400">{a.email}</small></td>
+                <td className="p-3">
+                  {a.first_name} {a.last_name}
+                  <br />
+                  <small className="text-gray-400">{a.email}</small>
+                </td>
                 <td className="p-3">{a.country_name}</td>
                 <td className="p-3">{a.option_label}</td>
                 <td className="p-3">{formatDZD(a.sale_price_dzd)}</td>
                 <td className="p-3 text-green font-bold">{formatDZD(a.benefit)}</td>
-                <td className="p-3"><Badge color={STATUS_COLORS[a.status]}>{STATUS_LABELS[a.status]}</Badge></td>
-                <td className="p-3">{formatDate(a.created_at)}</td>
-                <td className="p-3"><IconButton title="Détails" onClick={() => setSelected(a)}>👁</IconButton></td>
+                
+                {/* 2. Affichage propre du badge de paiement */}
                 <td className="p-3">
                   <Badge color={PAYMENT_BADGES[a.payment_status]?.color || 'red'}>
                     {PAYMENT_BADGES[a.payment_status]?.label || 'Non payé'}
                   </Badge>
                 </td>
+
+                {/* 3. Statut du dossier */}
                 <td className="p-3">
-                  <div className="flex gap-1">
-                    <IconButton title="Détails" onClick={() => setSelected(a)}>👁</IconButton>
-                    <IconButton title="Supprimer" danger onClick={() => handleDelete(a)}>🗑️</IconButton> {/* <-- AJOUTÉ */}
+                  <Badge color={STATUS_COLORS[a.status]}>
+                    {STATUS_LABELS[a.status]}
+                  </Badge>
+                </td>
+                
+                <td className="p-3">{formatDate(a.created_at)}</td>
+                
+                {/* 4. Actions regroupées dans la même cellule */}
+                <td className="p-3">
+                  <div className="flex gap-1 justify-end">
+                    <IconButton title="Détails" onClick={() => setSelected(a)}>
+                      👁
+                    </IconButton>
+                    <IconButton title="Supprimer" danger onClick={() => handleDelete(a)}>
+                      🗑️
+                    </IconButton>
                   </div>
                 </td>
               </tr>
             )) : (
-              <tr><td colSpan={9}><EmptyState icon="📥" text="Aucune demande trouvée." /></td></tr>
+              <tr>
+                {/* colSpan mis à jour à 10 pour occuper toute la largeur */}
+                <td colSpan={10}>
+                  <EmptyState icon="📥" text="Aucune demande trouvée." />
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
