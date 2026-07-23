@@ -324,20 +324,21 @@ function StepForm({ country, option, onBack, onSuccess }) {
               <label className="text-xs font-semibold uppercase tracking-wider text-[#8892A4] block mb-2">
                 Nombre de voyageurs
               </label>
-              <div className="flex items-center gap-4 bg-[#F7F5F0] border border-[#EDE9E0] rounded-xl px-4 py-2 w-max">
+              {/* Le conteneur prend maintenant toute la largeur (w-full) et répartit les boutons sur les côtés (justify-between) */}
+              <div className="flex items-center justify-between bg-[#F7F5F0] border border-[#EDE9E0] rounded-xl px-4 py-2.5 w-full">
                 {/* Bouton Moins */}
                 <button
                   type="button"
                   onClick={() => updateNbTravelers(nbTravelers - 1)}
                   disabled={nbTravelers <= 1}
-                  className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors flex items-center justify-center disabled:opacity-50 select-none"
+                  className="w-9 h-9 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors flex items-center justify-center disabled:opacity-50 select-none"
                 >
                   −
                 </button>
     
-                {/* Valeur actuelle */}
-                <span className="w-8 text-center font-bold text-[#00143C] mono text-base select-none">
-                  {nbTravelers}
+                {/* Valeur actuelle (centrée) */}
+                <span className="text-center font-bold text-[#00143C] mono text-base select-none">
+                  {nbTravelers} {nbTravelers > 1 ? 'voyageurs' : 'voyageur'}
                 </span>
     
                 {/* Bouton Plus */}
@@ -345,7 +346,7 @@ function StepForm({ country, option, onBack, onSuccess }) {
                   type="button"
                   onClick={() => updateNbTravelers(nbTravelers + 1)}
                   disabled={nbTravelers >= 9}
-                  className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors flex items-center justify-center disabled:opacity-50 select-none"
+                  className="w-9 h-9 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors flex items-center justify-center disabled:opacity-50 select-none"
                 >
                   +
                 </button>
