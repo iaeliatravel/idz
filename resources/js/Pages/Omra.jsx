@@ -16,9 +16,15 @@ const HOTEL_IMGS = [
 
 function getHotelImg(hotel, i = 0) { return hotel?.images?.[0] || HOTEL_IMGS[i % HOTEL_IMGS.length]; }
 function fmtDZD(n) { return Number(n || 0).toLocaleString('fr-DZ'); }
+// Dans resources/js/Pages/Omra.jsx (autour de la ligne 10) :
 function fmtDate(d) {
   if (!d) return '—';
-  return new Date(d).toLocaleDateString('fr-DZ', { day: '2-digit', month: 'short', year: 'numeric' });
+  // Utilise la locale arabe algérienne 'ar-DZ' pour un formatage localisé
+  return new Date(d).toLocaleDateString('ar-DZ', { 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric' 
+  });
 }
 function breakdownLabel(k) {
   return { adults: 'بالغ', children_with_bed: 'طفل (بسرير)', children_no_bed: 'طفل (بدون سرير)', infants: 'رضيع' }[k] || k;
@@ -210,8 +216,11 @@ export default function Omra() {
                   { key: 'childNoBed',label: 'طفل (بدون سرير)',   min: 0 },
                   { key: 'infants',   label: 'رضيع',              min: 0 },
                 ].map(({ key, label, min }) => (
-                  <div key={key} className="flex items-center justify-between bg-white rounded-xl px-3 py-2.5 border border-[#EDE9E0]">
-                    <span className="text-sm font-medium text-[#1A1A2E] truncate ml-2">{label}</span>
+                  <div key={key} className="flex items-center justify-between bg-white rounded-xl p-3 border border-[#EDE9E0] gap-3">
+                    {/* RETRAIT de truncate et ml-2 / AJOUT de whitespace-nowrap et mr-2 pour le RTL */}
+                    <span className="text-xs sm:text-sm font-medium text-[#1A1A2E] whitespace-nowrap mr-2">
+                      {label}
+                    </span>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button type="button"
                         onClick={() => setCounters((c) => ({ ...c, [key]: Math.max(min, c[key] - 1) }))}

@@ -118,7 +118,7 @@ class OmraAdminController extends Controller
     {
         return response()->json(
             OmraDeparture::with(['airline', 'partner', 'packages.mecqueHotel', 'packages.medineHotel', 'packages.pricing'])
-                ->orderByDesc('departure_date')
+                ->orderBy('departure_date', 'asc') // <-- MODIFIÉ : tri par date de départ croissante
                 ->get()
                 ->map(fn ($d) => $this->formatDepartureForAdmin($d))
         );
