@@ -152,8 +152,17 @@ class EvisaAdminController extends Controller
 
     public function optionsDestroy(EvisaOption $option)
     {
-        $option->delete();
+        // Vérifie si l'option est liée à des demandes de visa existantes
+        if (\App\Models\EvisaApplication::where('option_id', $option->id)->exists()) {
+           // Désactive simplement l'option pour préserver l'historique financier et client
+            $option->update(['is_active' => false]);
+            return response()->json([
+                'success' => true, 
+                'message' => 'L\'option est liée à des demandes existantes. Elle a été désactivée (masquée du site) pour préserver vos données.'
+            ]);
+        }
 
+        $option->delete();
         return response()->json(['success' => true]);
     }
 
@@ -237,7 +246,7 @@ class EvisaAdminController extends Controller
     // ===================================================================
     public function applicationsIndex(Request $request)
     {
-        $query = EvisaApplication::with(['country', 'option', 'files']);
+        $query = EvisaApplication::with(['country', 'option', 'files', 'payments']); // <-- AJOUTEZ 'payments' ici
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
@@ -258,7 +267,11 @@ class EvisaAdminController extends Controller
                 $arr['country_name'] = $app->country->name_fr ?? null;
                 $arr['option_label'] = $app->option->label_fr ?? null;
                 $arr['benefit'] = $app->benefit;
-
+                
+                // Récupère l'état du paiement associé
+                $lastPayment = $app->payments->first();
+                $arr['payment_status'] = $lastPayment ? $lastPayment->status : 'non_paye';
+                
                 return $arr;
             });
 
@@ -276,4 +289,21 @@ class EvisaAdminController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function applicationsDestroy(EvisaApplication $application)
+    {
+        DB::transaction(function () use ($application) {
+            // 1. Supprime les fichiers joints associés
+            $application->files()->delete();
+            // 2. Supprime l'historique des transactions de paiement
+            $application->payments()->delete();
+            // 3. Supprime les voyageurs secondaires rattachés
+            $application->travelers()->delete();
+            // 4. Supprime la demande principale
+            $application->delete();
+        });
+
+        return response()->json(['success' => true]);
+    }
+    
 }

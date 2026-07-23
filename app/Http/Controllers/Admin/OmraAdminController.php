@@ -293,4 +293,37 @@ class OmraAdminController extends Controller
                 })
         );
     }
+
+    public function duplicate(OmraDeparture $departure)
+    {
+        $newDeparture = DB::transaction(function () use ($departure) {
+            // Copie le départ
+            $clone = $departure->replicate();
+            $clone->title_ar = $departure->title_ar . ' (نسخة)'; // Ajoute "(Copie)" en arabe
+            $clone->status = 'brouillon'; // Dupliqué en brouillon par sécurité
+            $clone->save();
+
+            // Copie les formules (packages) associées
+            foreach ($departure->packages as $pkg) {
+                $newPkg = $pkg->replicate();
+                $newPkg->departure_id = $clone->id;
+                $newPkg->save();
+
+                // Copie les tarifs de chaque formule
+                foreach ($pkg->pricing as $price) {
+                    $newPrice = $price->replicate();
+                    $newPrice->package_id = $newPkg->id;
+                    $newPrice->save();
+                }
+            }
+
+            return $clone;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Départ dupliqué avec succès en mode brouillon.',
+            'departure' => $newDeparture
+        ]);
+    }
 }

@@ -12,6 +12,13 @@ const STATUS_COLORS = {
   approuve: 'green', refuse: 'red', annule: 'red',
 };
 
+const PAYMENT_BADGES = {
+  paid: { label: '💳 Payé', color: 'green' },
+  pending: { label: '⏳ En attente', color: 'amber' },
+  failed: { label: '❌ Échoué', color: 'red' },
+  non_paye: { label: '🚫 Non payé', color: 'red' }
+};
+
 export default function EvisaApplications() {
   const [apps, setApps] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
@@ -46,6 +53,7 @@ export default function EvisaApplications() {
           <thead className="bg-gray-50 text-left text-gray-500 text-xs uppercase">
             <tr>
               <th className="p-3">Référence</th><th className="p-3">Client</th><th className="p-3">Pays</th>
+              <th className="p-3">Option</th><th className="p-3">Prix</th><th className="p-3">Paiement</th>{/* <-- AJOUTÉ */}
               <th className="p-3">Option</th><th className="p-3">Prix vente</th><th className="p-3">Bénéfice</th>
               <th className="p-3">Statut</th><th className="p-3">Date</th><th className="p-3"></th>
             </tr>
@@ -62,6 +70,17 @@ export default function EvisaApplications() {
                 <td className="p-3"><Badge color={STATUS_COLORS[a.status]}>{STATUS_LABELS[a.status]}</Badge></td>
                 <td className="p-3">{formatDate(a.created_at)}</td>
                 <td className="p-3"><IconButton title="Détails" onClick={() => setSelected(a)}>👁</IconButton></td>
+                <td className="p-3">
+                  <Badge color={PAYMENT_BADGES[a.payment_status]?.color || 'red'}>
+                    {PAYMENT_BADGES[a.payment_status]?.label || 'Non payé'}
+                  </Badge>
+                </td>
+                <td className="p-3">
+                  <div className="flex gap-1">
+                    <IconButton title="Détails" onClick={() => setSelected(a)}>👁</IconButton>
+                    <IconButton title="Supprimer" danger onClick={() => handleDelete(a)}>🗑️</IconButton> {/* <-- AJOUTÉ */}
+                  </div>
+                </td>
               </tr>
             )) : (
               <tr><td colSpan={9}><EmptyState icon="📥" text="Aucune demande trouvée." /></td></tr>
@@ -91,6 +110,17 @@ function DetailModal({ application, onClose, onSaved }) {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleDelete(a) {
+    const confirmFirst = confirm(`⚠️ Attention : Voulez-vous vraiment supprimer définitivement la demande ${a.reference} de ${a.first_name} ${a.last_name} ?`);
+    if (!confirmFirst) return;
+    
+    const confirmSecond = confirm(`💥 ACTION IRRÉVERSIBLE : Cela supprimera également tous les fichiers joints (passeport, photos) et l'historique de paiement. Confirmer la suppression définitive ?`);
+    if (!confirmSecond) return;
+
+    await api.delete(`/evisa/applications/${a.id}`);
+    load();
   }
 
   return (

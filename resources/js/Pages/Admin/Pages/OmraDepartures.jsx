@@ -36,6 +36,12 @@ export default function OmraDepartures() {
     load();
   }
 
+  async function handleDuplicate(d) {
+    if (!confirm('Voulez-vous dupliquer ce départ et toutes ses formules ?')) return;
+    await api.post(`/omra/departures/${d.id}/duplicate`);
+    load();
+  }
+
   return (
     <div>
       <Toolbar>
@@ -70,6 +76,7 @@ export default function OmraDepartures() {
                 <div className="flex gap-2 items-center flex-shrink-0">
                   <Badge color={STATUS_BADGE[d.status]}>{STATUS_LABELS[d.status]}</Badge>
                   <IconButton title="Modifier" onClick={() => setEditing(d)}>✏️</IconButton>
+                  <IconButton title="Dupliquer" onClick={() => handleDuplicate(d)}>📋</IconButton> {/* <-- AJOUTÉ */}
                   <IconButton title="Supprimer" danger onClick={() => handleDelete(d)}>🗑️</IconButton>
                 </div>
               </div>

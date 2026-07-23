@@ -126,6 +126,8 @@ Route::prefix('api')->group(function () {
         Route::get('/evisa/applications', [EvisaAdminController::class, 'applicationsIndex']);
         Route::put('/evisa/applications/{application}', [EvisaAdminController::class, 'applicationsUpdate']);
 
+        Route::delete('/evisa/applications/{application}', [EvisaAdminController::class, 'applicationsDestroy']);
+
         // Omra admin
         Route::get('/omra/kpis', [OmraAdminController::class, 'kpis']);
 
@@ -155,6 +157,8 @@ Route::prefix('api')->group(function () {
         Route::put('/omra/prebookings/{prebooking}', [OmraAdminController::class, 'prebookingsUpdate']);
 
         Route::get('/omra/simulations', [OmraAdminController::class, 'simulationsIndex']);
+        
+        Route::post('/omra/departures/{departure}/duplicate', [OmraAdminController::class, 'duplicate']);
 
         // Général
         Route::get('/messages', [GeneralAdminController::class, 'messagesIndex']);

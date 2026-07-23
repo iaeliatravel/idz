@@ -62,4 +62,9 @@ class EvisaApplication extends Model
 
     public function travelers() { return $this->hasMany(EvisaApplicationTraveler::class); }
 
+    public function payments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EvisaPayment::class, 'application_id');
+    }
+
 }
