@@ -244,7 +244,7 @@ function StepForm({ country, option, onBack, onSuccess }) {
   const totalPrice = nbTravelers * Number(option.sale_price_dzd);
 
   function updateNbTravelers(n) {
-    const nb = Math.max(1, Math.min(10, n));
+    const nb = Math.max(1, Math.min(9, n));
     setNbTravelers(nb);
     const extraCount = nb - 1;
     if (extraCount > extras.length) {
@@ -314,14 +314,33 @@ function StepForm({ country, option, onBack, onSuccess }) {
               <label className="text-xs font-semibold uppercase tracking-wider text-[#8892A4] block mb-2">
                 Nombre de voyageurs
               </label>
-              <div className="flex items-center gap-3 flex-wrap">
-                {[1,2,3,4,5,6,7,8,9,10].map((n) => (
-                  <button key={n} type="button" onClick={() => updateNbTravelers(n)}
-                    className={`w-9 h-9 rounded-xl font-semibold text-sm transition-all ${nbTravelers === n ? 'bg-[#00143C] text-white' : 'bg-[#F7F5F0] text-[#8892A4] hover:bg-[#EDE9E0]'}`}>
-                    {n}
-                  </button>
-                ))}
+              <div className="flex items-center gap-4 bg-[#F7F5F0] border border-[#EDE9E0] rounded-xl px-4 py-2 w-max">
+                {/* Bouton Moins */}
+                <button
+                  type="button"
+                  onClick={() => updateNbTravelers(nbTravelers - 1)}
+                  disabled={nbTravelers <= 1}
+                  className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors flex items-center justify-center disabled:opacity-50 select-none"
+                >
+                  −
+                </button>
+    
+                {/* Valeur actuelle */}
+                <span className="w-8 text-center font-bold text-[#00143C] mono text-base select-none">
+                  {nbTravelers}
+                </span>
+    
+                {/* Bouton Plus */}
+                <button
+                  type="button"
+                  onClick={() => updateNbTravelers(nbTravelers + 1)}
+                  disabled={nbTravelers >= 9}
+                  className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors flex items-center justify-center disabled:opacity-50 select-none"
+                >
+                  +
+                </button>
               </div>
+  
               {nbTravelers > 1 && (
                 <div className="mt-2 px-3 py-2 bg-[#F7F5F0] rounded-xl text-sm text-[#8892A4]">
                   💡 {nbTravelers} voyageurs × {Number(option.sale_price_dzd).toLocaleString('fr-DZ')} DZD =

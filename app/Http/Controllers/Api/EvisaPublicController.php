@@ -94,7 +94,7 @@ class EvisaPublicController extends Controller
             'phone'           => ['required', 'string', 'max:40'],
             'passport_number' => ['required', 'string', 'max:60'],  // ← OBLIGATOIRE
             'travel_date'     => ['required', 'date'],               // ← OBLIGATOIRE
-            'nb_travelers'    => ['nullable', 'integer', 'min:1', 'max:10'],
+            'nb_travelers'    => ['nullable', 'integer', 'min:1', 'max:9'], // Limité à 9 ici aussi
             'message'         => ['nullable', 'string'],
             'recaptcha_token' => ['nullable', 'string'],
             // Voyageurs supplémentaires (JSON encodé)
