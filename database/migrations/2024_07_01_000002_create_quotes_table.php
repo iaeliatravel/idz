@@ -12,13 +12,14 @@ return new class extends Migration {
             $table->string('reference', 30)->unique();
             $table->string('customer_name', 160);
             $table->string('customer_phone', 40);
-            $table->string('customer_email', 180);
+            $table->string('customer_email', 180)->nullable(); // <-- Rendu Facultatif
             $table->string('destination', 160);
             $table->date('departure_date')->nullable();
             $table->integer('duration_nights')->nullable();
             $table->integer('nb_adults')->default(1);
             $table->integer('nb_children')->default(0);
-            $table->integer('hotel_stars')->nullable(); // 3*, 4*, 5*
+            $table->json('children_ages')->nullable(); // <-- NOUVEAU : Âges des enfants
+            $table->integer('hotel_stars')->nullable();
             $table->decimal('estimated_budget_dzd', 10, 2)->nullable();
             $table->text('message')->nullable();
             $table->enum('status', ['nouveau', 'en_etude', 'devis_envoye', 'accepte', 'refuse', 'annule'])->default('nouveau');

@@ -9,6 +9,7 @@ class Tour extends Model
 {
     protected $fillable = [
         'title_fr', 'title_ar', 'slug', 'destination', 'departure_date', 'return_date',
+        'price_dzd', 'price_child_dzd', // <-- AJOUTÉS ICI
         'flights', 'program', 'included_pack', 'excluded_pack', 'remarks',
         'cover_image_url', 'seats_total', 'seats_remaining', 'is_active'
     ];
