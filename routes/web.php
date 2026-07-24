@@ -38,7 +38,22 @@ Route::get('/evisa', fn () => Inertia::render('Evisa'))
 
 Route::get('/omra', fn () => Inertia::render('Omra'))
     ->name('omra');
-    
+
+Route::get('/devis', fn () => Inertia::render('Quote'))
+    ->name('quote');
+
+Route::get('/voyages', function () {
+    return Inertia::render('Tours', [
+        'tours' => \App\Models\Tour::where('is_active', true)->orderBy('departure_date')->get()
+    ]);
+})->name('tours.index');
+
+Route::get('/voyages/{slug}', function ($slug) {
+    $tour = \App\Models\Tour::where('slug', $slug)->where('is_active', true)->firstOrFail();
+    return Inertia::render('TourDetail', [
+        'tour' => $tour
+    ]);
+})->name('tours.show');    
 
 /*
 |--------------------------------------------------------------------------
@@ -56,6 +71,14 @@ Route::get('/admin/{any?}', fn () => Inertia::render('Admin/App'))
 |--------------------------------------------------------------------------
 */
 Route::prefix('api')->group(function () {
+
+    // Voyages organisés publics
+    Route::get('/tours', [TourPublicController::class, 'index']);
+    Route::get('/tours/{slug}', [TourPublicController::class, 'show']);
+    Route::post('/tours/book', [TourPublicController::class, 'book'])->middleware('throttle:5,1');
+
+    // Demande de devis publique
+    Route::post('/quotes', [QuotePublicController::class, 'store'])->middleware('throttle:5,1');
 
     Route::get('/content/{page}', [SiteContentPublicController::class, 'show']);
     Route::get('/config', [SiteConfigController::class, 'show']);
@@ -91,6 +114,24 @@ Route::prefix('api')->group(function () {
     |--------------------------------------------------------------------
     */
     Route::middleware('admin.auth')->prefix('admin')->group(function () {
+
+        // Voyages Organisés (Tours)
+        Route::get('/tours', [TourAdminController::class, 'index']);
+        Route::post('/tours', [TourAdminController::class, 'store']);
+        Route::put('/tours/{tour}', [TourAdminController::class, 'update']);
+        Route::delete('/tours/{tour}', [TourAdminController::class, 'destroy']);
+        Route::post('/tours/{tour}/duplicate', [TourAdminController::class, 'duplicate']);
+        Route::post('/tours/{tour}/upload-cover', [TourAdminController::class, 'uploadCover']);
+
+        // Réservations de Voyages Organisés
+        Route::get('/tour-bookings', [TourAdminController::class, 'bookingsIndex']);
+        Route::put('/tour-bookings/{booking}', [TourAdminController::class, 'bookingsUpdate']);
+        Route::delete('/tour-bookings/{booking}', [TourAdminController::class, 'bookingsDestroy']);
+
+        // Demandes de Devis (Quotes)
+        Route::get('/quotes', [QuoteAdminController::class, 'index']);
+        Route::put('/quotes/{quote}', [QuoteAdminController::class, 'update']);
+        Route::delete('/quotes/{quote}', [QuoteAdminController::class, 'destroy']);
 
         // Contenu éditable & médiathèque
         Route::get('/content/{page}', [SiteContentAdminController::class, 'index']);

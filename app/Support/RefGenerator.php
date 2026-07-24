@@ -21,4 +21,14 @@ class RefGenerator
     {
         return self::generate('OM');
     }
+
+    public static function tourBooking(): string
+    {
+        return self::generate('VO'); // Voyage Organisé
+    }
+
+    public static function quote(): string
+    {
+        return self::generate('DE'); // Devis
+    }
 }

@@ -17,6 +17,14 @@ const LINKS = [
     { to: '/admin/omra/airlines', label: 'Compagnies aériennes', icon: '🛫' },
     { to: '/admin/omra/partners', label: 'Partenaires', icon: '🤝' },
   ]},
+  { section: 'Voyages Organisés', items: [
+    { to: '/admin/tours', label: 'Gestion des Voyages', icon: '🌍' },
+    { to: '/admin/tour-bookings', label: 'Réservations', icon: '📝' },
+  ]},
+  { section: 'Demandes clients', items: [
+    { to: '/admin/quotes', label: 'Demandes de Devis', icon: '💼' },
+    { to: '/admin/messages', label: 'Messages contact', icon: '✉' },
+  ]},
   { section: 'Contenu du site', items: [
     { to: '/admin/content/home', label: 'Page Accueil', icon: '🏠' },
     { to: '/admin/content/evisa', label: 'Page eVisa', icon: '🛂' },
