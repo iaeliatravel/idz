@@ -22,6 +22,11 @@ import LogosManager from './Pages/LogosManager';
 import ContactMessages from './Pages/ContactMessages';
 import Settings from './Pages/Settings';
 
+// ---- IMPORTS DES 3 NOUVELLES PAGES ----
+import ToursManager from './Pages/ToursManager';
+import TourBookings from './Pages/TourBookings';
+import QuotesManager from './Pages/QuotesManager';
+
 export { Spinner };
 
 export default function App() {
@@ -85,6 +90,12 @@ function Shell({ admin, setAdmin }) {
             <Route path="/admin/omra/hotels" element={<OmraHotels />} />
             <Route path="/admin/omra/airlines" element={<OmraAirlines />} />
             <Route path="/admin/omra/partners" element={<OmraPartners />} />
+            
+            {/* ---- 3 NOUVELLES ROUTES ENREGISTRÉES ICI ---- */}
+            <Route path="/admin/tours" element={<ToursManager />} />
+            <Route path="/admin/tour-bookings" element={<TourBookings />} />
+            <Route path="/admin/quotes" element={<QuotesManager />} />
+
             <Route path="/admin/content/:page" element={<ContentEditor />} />
             <Route path="/admin/logos" element={<LogosManager />} />
             <Route path="/admin/messages" element={<ContactMessages />} />
