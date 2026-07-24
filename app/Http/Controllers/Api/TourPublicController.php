@@ -16,9 +16,15 @@ class TourPublicController extends Controller
         return response()->json(Tour::where('is_active', true)->orderBy('departure_date')->get());
     }
 
-    public function show(string $slug)
+public function show(string $slug)
     {
-        return response()->json(Tour::where('slug', $slug)->where('is_active', true)->firstOrFail());
+        // Récupère le voyage organisé avec toutes ses formules d'hôtels et tarifs
+        $tour = Tour::where('slug', $slug)
+            ->where('is_active', true)
+            ->with('hotelOptions')
+            ->firstOrFail();
+
+        return response()->json($tour);
     }
 
     public function book(Request $request)
