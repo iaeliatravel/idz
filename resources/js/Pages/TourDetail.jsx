@@ -12,7 +12,7 @@ const OCC_LABELS = {
 
 export default function TourDetail({ tour }) {
   const [hotelOptions, setHotelOptions] = useState(tour.hotel_options || []);
-  const [selectedHotel, setSelectedHotel] = useState(hotelOptions[0] || null);
+  const [selectedHotel, setSelectedHotel] = useState(tour.hotel_options?.[0] || null);
   const [occupancy, setOccupancy] = useState('price_double_dzd'); // price_double_dzd | price_triple_dzd | price_single_dzd
   const [activeTab, setActiveTab] = useState('program'); // program | flights | included | remarks
   
@@ -90,7 +90,7 @@ export default function TourDetail({ tour }) {
               </div>
 
               {/* Barre d'onglets de navigation du programme */}
-              <div className="flex border-b border-[#F7F5F0] overflow-x-auto bg-white">
+              <div className="flex border-b border-[#F7F5F0] overflow-x-auto bg-white whitespace-nowrap hide-scrollbar">
                 <TabButton active={activeTab === 'program'} onClick={() => setActiveTab('program')} label="🗺️ Programme" />
                 <TabButton active={activeTab === 'flights'} onClick={() => setActiveTab('flights')} label="✈️ Plan de Vol" />
                 <TabButton active={activeTab === 'included'} onClick={() => setActiveTab('included')} label="✅ Inclus dans le Pack" />
@@ -126,13 +126,20 @@ export default function TourDetail({ tour }) {
                   <div className="space-y-4 text-left">
                     {tour.flights && tour.flights.length > 0 ? (
                       tour.flights.map((flight, idx) => (
-                        <div key={idx} className="bg-[#F7F5F0] p-4 rounded-2xl border border-[#EDE9E0] flex justify-between items-center gap-4">
+                        <div key={idx} className="bg-[#F7F5F0] p-4 rounded-2xl border border-[#EDE9E0] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                           <div>
                             <div className="text-xs text-gray-400 font-bold uppercase mb-1">Vol {idx === 0 ? 'Aller' : 'Retour'}</div>
                             <div className="font-bold text-navy text-sm">{flight.from} ➔ {flight.to}</div>
                             <div className="text-xs text-gray-500 mt-1">Compagnie : {flight.airline || 'Non spécifiée'}</div>
+                            
+                            {/* Affichage de l'escale */}
+                            {flight.escale && (
+                              <div className="mt-2 text-xs font-semibold text-amber-600 bg-amber-50 inline-block px-2 py-1 rounded-md border border-amber-200">
+                                ⏱ Escale à {flight.escale} ({flight.escale_duration || 'Durée non précisée'})
+                              </div>
+                            )}
                           </div>
-                          <div className="text-right">
+                          <div className="text-left md:text-right w-full md:w-auto border-t md:border-0 pt-2 md:pt-0 border-gray-200">
                             <div className="text-xs text-[#C9A84C] font-semibold">{flight.date}</div>
                             <div className="text-sm font-bold text-navy mt-0.5">{flight.time || '—'}</div>
                           </div>

@@ -202,13 +202,17 @@ function TourModal({ tour, onClose, onSaved }) {
               <div key={i} className="border p-4 rounded-xl bg-gray-50 relative space-y-3">
                 <button type="button" onClick={() => removeFlight(i)} className="absolute top-2 right-3 text-red-500 text-xs">Retirer</button>
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField label="Aéroport départ"><input value={f.from} onChange={(e) => updateFlight(i, 'from', e.target.value)} className={inputClass} /></FormField>
-                  <FormField label="Aéroport arrivée"><input value={f.to} onChange={(e) => updateFlight(i, 'to', e.target.value)} className={inputClass} /></FormField>
+                  <FormField label="Aéroport départ"><input value={f.from || ''} onChange={(e) => updateFlight(i, 'from', e.target.value)} className={inputClass} /></FormField>
+                  <FormField label="Aéroport arrivée"><input value={f.to || ''} onChange={(e) => updateFlight(i, 'to', e.target.value)} className={inputClass} /></FormField>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <FormField label="Compagnie aérienne"><input value={f.airline} onChange={(e) => updateFlight(i, 'airline', e.target.value)} className={inputClass} /></FormField>
-                  <FormField label="Date"><input type="date" value={f.date} onChange={(e) => updateFlight(i, 'date', e.target.value)} className={inputClass} /></FormField>
-                  <FormField label="Heure"><input type="time" value={f.time} onChange={(e) => updateFlight(i, 'time', e.target.value)} className={inputClass} /></FormField>
+                  <FormField label="Compagnie"><input value={f.airline || ''} onChange={(e) => updateFlight(i, 'airline', e.target.value)} className={inputClass} /></FormField>
+                  <FormField label="Date"><input type="date" value={f.date || ''} onChange={(e) => updateFlight(i, 'date', e.target.value)} className={inputClass} /></FormField>
+                  <FormField label="Heure"><input type="time" value={f.time || ''} onChange={(e) => updateFlight(i, 'time', e.target.value)} className={inputClass} /></FormField>
+                </div>
+                <div className="grid grid-cols-2 gap-4 bg-white p-3 rounded-lg border">
+                  <FormField label="Escale (Optionnel)"><input value={f.escale || ''} onChange={(e) => updateFlight(i, 'escale', e.target.value)} placeholder="Ex: Istanbul" className={inputClass} /></FormField>
+                  <FormField label="Durée de l'escale"><input value={f.escale_duration || ''} onChange={(e) => updateFlight(i, 'escale_duration', e.target.value)} placeholder="Ex: 3h 30m" className={inputClass} /></FormField>
                 </div>
               </div>
             ))}

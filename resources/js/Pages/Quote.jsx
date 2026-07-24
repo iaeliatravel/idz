@@ -165,19 +165,16 @@ export default function Quote() {
               </div>
             </StepCard>
 
-            {/* Étape 3 : Voyageurs (Compteurs empilés pour mobile) */}
+                        {/* Étape 3 : Voyageurs (Avec gestion des âges enfants) */}
             <StepCard index={3} title="Combien de voyageurs ?" completed={form.nb_adults > 0}>
-              <div className="grid grid-cols-2 gap-3">
-                
+              <div className="grid grid-cols-2 gap-3 mb-4">
                 {/* Adultes */}
                 <div className="flex flex-col items-center justify-center bg-[#F7F5F0] rounded-xl p-3 border border-[#EDE9E0] gap-2">
                   <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Adultes</span>
                   <div className="flex items-center justify-between w-full" dir="ltr">
-                    <button type="button" onClick={() => setForm({ ...form, nb_adults: Math.max(1, form.nb_adults - 1) })}
-                      className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] flex items-center justify-center text-lg select-none">−</button>
-                    <span className="w-4 text-center font-bold text-[#00143C] text-sm">{form.nb_adults}</span>
-                    <button type="button" onClick={() => setForm({ ...form, nb_adults: form.nb_adults + 1 })}
-                      className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] flex items-center justify-center text-lg select-none">+</button>
+                    <button type="button" onClick={() => setForm({ ...form, nb_adults: Math.max(1, form.nb_adults - 1) })} className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] flex items-center justify-center text-lg">−</button>
+                    <span className="font-bold text-[#00143C]">{form.nb_adults}</span>
+                    <button type="button" onClick={() => setForm({ ...form, nb_adults: form.nb_adults + 1 })} className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] flex items-center justify-center text-lg">+</button>
                   </div>
                 </div>
 
@@ -185,47 +182,48 @@ export default function Quote() {
                 <div className="flex flex-col items-center justify-center bg-[#F7F5F0] rounded-xl p-3 border border-[#EDE9E0] gap-2">
                   <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Enfants</span>
                   <div className="flex items-center justify-between w-full" dir="ltr">
-                    <button type="button" onClick={() => setForm({ ...form, nb_children: Math.max(0, form.nb_children - 1) })}
-                      className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] flex items-center justify-center text-lg select-none">−</button>
-                    <span className="w-4 text-center font-bold text-[#00143C] text-sm">{form.nb_children}</span>
-                    <button type="button" onClick={() => setForm({ ...form, nb_children: form.nb_children + 1 })}
-                      className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] flex items-center justify-center text-lg select-none">+</button>
+                    <button type="button" onClick={() => {
+                        const newNb = Math.max(0, form.nb_children - 1);
+                        const newAges = (form.children_ages || []).slice(0, newNb);
+                        setForm({ ...form, nb_children: newNb, children_ages: newAges });
+                      }} 
+                      className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] flex items-center justify-center text-lg">−</button>
+                    <span className="font-bold text-[#00143C]">{form.nb_children}</span>
+                    <button type="button" onClick={() => {
+                        const newNb = form.nb_children + 1;
+                        const newAges = [...(form.children_ages || []), 0]; // Ajoute un âge par défaut (0)
+                        setForm({ ...form, nb_children: newNb, children_ages: newAges });
+                      }}
+                      className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] flex items-center justify-center text-lg">+</button>
                   </div>
-                </div>
-
-              </div>
-            </StepCard>
-
-            {/* Étape 4 : Préférences */}
-            <StepCard index={4} title="Vos préférences" optional>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-semibold text-gray-400 block mb-1">Catégorie ou hôtel souhaité</label>
-                  <div className="relative flex items-center bg-[#F7F5F0] border border-[#EDE9E0] rounded-xl px-4 py-3 w-full">
-                    <span className="text-gray-400 ml-2">🏨</span>
-                    <input 
-                      value={form.message}
-                      onChange={(e) => setForm({ ...form, message: e.target.value })}
-                      placeholder="Ex. : Hilton, Rixos, hôtel 5 étoiles..."
-                      className="w-full bg-transparent border-0 outline-none text-sm p-0 focus:ring-0 text-[#00143C]"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-400 block mb-1">Budget estimé par hôtel (DZD)</label>
-                  <div className="relative flex items-center bg-[#F7F5F0] border border-[#EDE9E0] rounded-xl px-4 py-3 w-full">
-                    <span className="text-gray-400 ml-2">💰</span>
-                    <input 
-                      type="number"
-                      value={form.estimated_budget_dzd}
-                      onChange={(e) => setForm({ ...form, estimated_budget_dzd: e.target.value })}
-                      placeholder="Ex. : 250000"
-                      className="w-full bg-transparent border-0 outline-none text-sm p-0 focus:ring-0 text-[#00143C]"
-                    />
-                  </div>
-                  <span className="text-[10px] text-[#8892A4] mt-1 block">Indiquez le montant estimé en Dinars Algériens.</span>
                 </div>
               </div>
+
+              {/* Sélection de l'âge des enfants */}
+              {form.nb_children > 0 && (
+                <div className="bg-[#FFF9EC] border border-[#C9A84C]/20 p-4 rounded-xl">
+                  <label className="text-xs font-bold text-[#C9A84C] uppercase tracking-wider block mb-3">Âge des enfants le jour du départ</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {Array.from({ length: form.nb_children }).map((_, i) => (
+                      <div key={i}>
+                        <select 
+                          value={form.children_ages?.[i] || 0} 
+                          onChange={(e) => {
+                            const newAges = [...(form.children_ages || [])];
+                            newAges[i] = parseInt(e.target.value);
+                            setForm({ ...form, children_ages: newAges });
+                          }}
+                          className="w-full border border-[#EDE9E0] rounded-lg px-2 py-2 text-xs bg-white focus:outline-none focus:border-[#C9A84C]"
+                        >
+                          {[...Array(12).keys()].map(age => (
+                            <option key={age} value={age}>{age === 0 ? 'Bébé (< 1 an)' : `${age} an(s)`}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </StepCard>
 
             {/* Étape 5 : Coordonnées */}
@@ -236,7 +234,7 @@ export default function Quote() {
               <div className="space-y-3">
                 <FormField label="Nom complet" required value={form.customer_name} onChange={(v) => setForm({ ...form, customer_name: v })} placeholder="Votre nom" icon="👤" />
                 <FormField label="Téléphone" required value={form.customer_phone} onChange={(v) => setForm({ ...form, customer_phone: v })} placeholder="Votre numéro" icon="📞" />
-                <FormField label="E-mail" type="email" required value={form.customer_email} onChange={(v) => setForm({ ...form, customer_email: v })} placeholder="Votre adresse e-mail" icon="✉" />
+                <FormField label="E-mail" type="email" required={false} value={form.customer_email} onChange={(v) => setForm({ ...form, customer_email: v })} placeholder="Facultatif" icon="✉" />
               </div>
             </StepCard>
 
