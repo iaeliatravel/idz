@@ -11,6 +11,11 @@ use App\Http\Controllers\Api\EvisaPublicController;
 use App\Http\Controllers\Api\OmraPublicController;
 use App\Http\Controllers\Api\SiteConfigController;
 use App\Http\Controllers\Api\SiteContentPublicController;
+use App\Http\Controllers\Admin\TourAdminController;
+use App\Http\Controllers\Admin\QuoteAdminController;
+use App\Http\Controllers\Api\TourPublicController;
+use App\Http\Controllers\Api\QuotePublicController;
+
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 

@@ -23,18 +23,18 @@ const LINKS = [
   ]},
   { section: 'Demandes clients', items: [
     { to: '/admin/quotes', label: 'Demandes de Devis', icon: '💼' },
-    { to: '/admin/messages', label: 'Messages contact', icon: '✉' },
+    { to: '/admin/messages', label: 'Messages contact', icon: '✉' }, // On le laisse ici (plus logique)
   ]},
   { section: 'Contenu du site', items: [
     { to: '/admin/content/home', label: 'Page Accueil', icon: '🏠' },
     { to: '/admin/content/evisa', label: 'Page eVisa', icon: '🛂' },
     { to: '/admin/content/omra', label: 'Page Omra', icon: '🕌' },
-    { to: '/admin/content/header', label: 'En-tête (Header)', icon: '🔝' },  // <-- AJOUTÉ
-    { to: '/admin/content/footer', label: 'Pied de page (Footer)', icon: '🔻' },  // <-- AJOUTÉ
+    { to: '/admin/content/header', label: 'En-tête (Header)', icon: '🔝' },
+    { to: '/admin/content/footer', label: 'Pied de page (Footer)', icon: '🔻' },
     { to: '/admin/logos', label: 'Logo du site', icon: '🖼' },
   ]},
   { section: 'Général', items: [
-    { to: '/admin/messages', label: 'Messages contact', icon: '✉' },
+    // Le doublon "Messages contact" a été retiré d'ici
     { to: '/admin/settings', label: 'Paramètres', icon: '⚙' },
   ]},
 ];
