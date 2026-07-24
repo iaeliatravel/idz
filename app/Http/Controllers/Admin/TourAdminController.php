@@ -87,7 +87,7 @@ class TourAdminController extends Controller
         return response()->json(['success' => true, 'url' => $url]);
     }
 
-    private function validateTour(Request $request): array
+private function validateTour(Request $request): array
     {
         return $request->validate([
             'title_fr' => ['required', 'string', 'max:200'],
@@ -96,14 +96,15 @@ class TourAdminController extends Controller
             'departure_date' => ['required', 'date'],
             'return_date' => ['required', 'date'],
             'price_dzd' => ['required', 'numeric', 'min:0'],
+            'price_child_dzd' => ['nullable', 'numeric', 'min:0'], // <-- AJOUT DE CETTE LIGNE
             'seats_total' => ['nullable', 'integer'],
             'seats_remaining' => ['nullable', 'integer'],
             'is_active' => ['nullable', 'boolean'],
             'remarks' => ['nullable', 'string'],
-            'flights' => ['nullable', 'array'],         // Validé comme tableau JSON
-            'program' => ['nullable', 'array'],         // Validé comme tableau JSON
-            'included_pack' => ['nullable', 'array'],   // Validé comme tableau JSON
-            'excluded_pack' => ['nullable', 'array'],   // Validé comme tableau JSON
+            'flights' => ['nullable', 'array'],
+            'program' => ['nullable', 'array'],
+            'included_pack' => ['nullable', 'array'],
+            'excluded_pack' => ['nullable', 'array'],
         ]);
     }
 

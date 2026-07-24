@@ -139,13 +139,27 @@ function TourModal({ tour, onClose, onSaved }) {
     setForm({ ...form, hotel_options: copy });
   }
 
+// Dans resources/js/Pages/Admin/Pages/ToursManager.jsx
+
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
+    
+    // Nettoyer les dates pour n'envoyer que YYYY-MM-DD (évite les erreurs de validation Laravel)
+    const payload = {
+      ...form,
+      departure_date: form.departure_date ? form.departure_date.substring(0, 10) : '',
+      return_date: form.return_date ? form.return_date.substring(0, 10) : '',
+    };
+
     try {
-      if (isNew) await api.post('/tours', form);
-      else await api.put(`/tours/${tour.id}`, form);
+      if (isNew) await api.post('/tours', payload);
+      else await api.put(`/tours/${tour.id}`, payload);
       onSaved();
+    } catch (error) {
+      // Afficher l'erreur dans la console pour déboguer si cela plante encore
+      console.error("Erreur de sauvegarde:", error.response?.data || error.message);
+      alert(error.response?.data?.message || "Une erreur est survenue lors de l'enregistrement.");
     } finally {
       setSaving(false);
     }
