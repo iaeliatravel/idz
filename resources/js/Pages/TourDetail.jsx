@@ -11,11 +11,8 @@ const OCC_LABELS = {
 };
 
 export default function TourDetail({ tour }) {
-  // Laravel peut renvoyer la relation sous 'hotel_options' ou 'hotelOptions'.
-  // On gère les deux cas pour être 100% sûr que les tarifs s'affichent.
+  // Gère de manière sécurisée les options d'hôtel
   const options = tour.hotel_options || tour.hotelOptions || [];
-  
-  // On sélectionne la première option par défaut si elle existe
   const [selectedHotelId, setSelectedHotelId] = useState(options.length > 0 ? String(options[0].id) : '');
   const [occupancy, setOccupancy] = useState('price_double_dzd');
   
@@ -28,16 +25,21 @@ export default function TourDetail({ tour }) {
   // Estimation du prix total en direct
   const [totalPrice, setTotalPrice] = useState(0);
 
-  // Recalcul du prix en temps réel
+  // Recalcul du prix en temps réel (VERSION SÉCURISÉE)
   useEffect(() => {
-    // Si aucune option n'est chargée ou sélectionnée, on arrête
-    if (options.length === 0 || !selectedHotelId) return;
+    if (options.length === 0 || !selectedHotelId) {
+        setTotalPrice(0);
+        return;
+    }
 
-    // On trouve l'hôtel sélectionné
     const hotel = options.find(h => String(h.id) === selectedHotelId);
-    if (!hotel) return;
+    
+    // Si l'hôtel n'est pas trouvé (ce qui ne devrait pas arriver), on arrête
+    if (!hotel) {
+        setTotalPrice(0);
+        return;
+    }
 
-    // Calcul des prix
     const adultUnitPrice = Number(hotel[occupancy] || 0);
     const childWithBedPrice = Number(hotel.price_child_with_bed_dzd || 0);
     const childNoBedPrice = Number(hotel.price_child_no_bed_dzd || 0);
@@ -50,7 +52,7 @@ export default function TourDetail({ tour }) {
 
     setTotalPrice(calculated);
   }, [selectedHotelId, occupancy, adults, childWithBed, childNoBed, infants, options]);
-
+  
   async function handleBook(e) {
     e.preventDefault();
     setStatus('sending');
