@@ -104,7 +104,12 @@ export function SuccessStep({ reference, applicationId, amount, nbTravelers = 1 
             </li>
             <li className="flex items-start gap-3">
               <span className="w-5 h-5 rounded-full bg-[#0F6E56]/10 text-[#0F6E56] flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
-              <span>Vous pourrez régler directement au niveau de notre agence.</span>
+              <div>
+                <span>Vous pourrez régler directement au niveau de notre agence.</span>
+                <a href="https://maps.app.goo.gl/JVVwHzDZ9WkUekWJ8" target="_blank" rel="noreferrer" className="block mt-1 text-sm font-semibold text-[#3C8CB4] hover:text-[#00143C] transition-colors">
+                  📍 Voir la localisation sur Google Maps
+                </a>
+              </div>
             </li>
           </ul>
         </div>

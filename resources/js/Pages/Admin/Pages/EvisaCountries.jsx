@@ -31,9 +31,17 @@ export default function EvisaCountries() {
       </Toolbar>
 
       <div className="bg-white rounded-xl border overflow-x-auto">
-        <table className="w-full text-sm">
+<table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500 text-xs uppercase">
-            <tr><th className="p-3">Drapeau</th><th className="p-3">Nom (FR)</th><th className="p-3">Région</th><th className="p-3">Actif</th><th className="p-3">Ordre</th><th className="p-3"></th></tr>
+            <tr>
+              <th className="p-3">Drapeau</th>
+              <th className="p-3">Nom (FR)</th>
+              <th className="p-3">Région</th>
+              <th className="p-3">Vues 👀</th>
+              <th className="p-3">Actif</th>
+              <th className="p-3">Ordre</th>
+              <th className="p-3 text-right">Actions</th>
+            </tr>
           </thead>
           <tbody>
             {filtered.length ? filtered.map((c) => (
@@ -42,19 +50,19 @@ export default function EvisaCountries() {
                   {c.flag_image_url ? <img src={c.flag_image_url} className="w-12 h-12 rounded-md object-cover" /> : <span className="text-3xl">{c.flag_emoji || '🌍'}</span>}
                 </td>
                 <td className="p-3"><strong>{c.name_fr}</strong><br /><small className="text-gray-400">{c.slug}</small></td>
-                <td className="p-3 font-mono font-bold text-[#3C8CB4]">{c.views || 0}</td>
                 <td className="p-3">{c.region || '—'}</td>
+                <td className="p-3 font-mono font-bold text-[#3C8CB4]">{c.views || 0}</td>
                 <td className="p-3">{c.is_active ? <Badge color="green">Actif</Badge> : <Badge color="red">Inactif</Badge>}</td>
                 <td className="p-3">{c.display_order}</td>
                 <td className="p-3">
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 justify-end">
                     <IconButton title="Modifier" onClick={() => setEditing(c)}>✏️</IconButton>
                     <IconButton title="Drapeau" onClick={() => setFlagTarget(c)}>🖼️</IconButton>
                     <IconButton title="Supprimer" danger onClick={() => handleDelete(c)}>🗑️</IconButton>
                   </div>
                 </td>
               </tr>
-            )) : <tr><td colSpan={6}><EmptyState icon="🌍" text="Aucun pays configuré." /></td></tr>}
+            )) : <tr><td colSpan={7}><EmptyState icon="🌍" text="Aucun pays configuré." /></td></tr>}
           </tbody>
         </table>
       </div>

@@ -160,8 +160,8 @@ function QuoteDetailModal({ quote, onClose, onSaved }) {
             {quote.nb_adults} Adulte(s) {quote.nb_children > 0 && `, ${quote.nb_children} Enfant(s)`}
           </div>
           {parsedAges.length > 0 && (
-            <div className="text-xs text-gray-500 mt-1">
-              Âges : {parsedAges.map(a => a === 0 ? 'Bébé' : `${a} an(s)`).join(' / ')}
+            <div className="text-xs font-bold text-[#C9A84C] mt-1 bg-[#FFF9EC] inline-block px-2 py-1 rounded-md border border-[#C9A84C]/20">
+              Âges enfants : {parsedAges.map(a => a === 0 ? 'Bébé (<1an)' : `${a} an(s)`).join(' / ')}
             </div>
           )}
         </div>

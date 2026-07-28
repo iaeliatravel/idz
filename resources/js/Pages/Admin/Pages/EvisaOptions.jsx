@@ -42,7 +42,17 @@ export default function EvisaOptions() {
       <div className="bg-white rounded-xl border overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500 text-xs uppercase">
-            <tr><th className="p-3">Pays</th><th className="p-3">Option</th><th className="p-3">Délai</th><th className="p-3">Coût</th><th className="p-3">Vente</th><th className="p-3">Bénéfice</th><th className="p-3">Actif</th><th className="p-3"></th></tr>
+            <tr>
+              <th className="p-3">Pays</th>
+              <th className="p-3">Option</th>
+              <th className="p-3">Vues 👀</th>
+              <th className="p-3">Délai</th>
+              <th className="p-3">Coût</th>
+              <th className="p-3">Vente</th>
+              <th className="p-3">Bénéfice</th>
+              <th className="p-3">Actif</th>
+              <th className="p-3 text-right">Actions</th>
+            </tr>
           </thead>
           <tbody>
             {filtered.length ? filtered.map((o) => (
@@ -56,14 +66,14 @@ export default function EvisaOptions() {
                 <td className="p-3 text-green font-bold">{formatDZD(Number(o.sale_price_dzd) - Number(o.cost_price_dzd))}</td>
                 <td className="p-3">{o.is_active ? <Badge color="green">Actif</Badge> : <Badge color="red">Inactif</Badge>}</td>
                 <td className="p-3">
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 justify-end">
                     <IconButton title="Modifier" onClick={() => setEditing(o)}>✏️</IconButton>
                     <IconButton title="Documents requis" onClick={() => setDocsTarget(o)}>📄</IconButton>
                     <IconButton title="Supprimer" danger onClick={() => handleDelete(o)}>🗑️</IconButton>
                   </div>
                 </td>
               </tr>
-            )) : <tr><td colSpan={8}><EmptyState icon="📋" text="Aucune option configurée." /></td></tr>}
+            )) : <tr><td colSpan={9}><EmptyState icon="📋" text="Aucune option configurée." /></td></tr>}
           </tbody>
         </table>
       </div>
