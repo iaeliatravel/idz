@@ -326,4 +326,12 @@ class OmraAdminController extends Controller
             'departure' => $newDeparture
         ]);
     }
+
+    public function prebookingsDestroy(\App\Models\OmraPrebooking $prebooking)
+    {
+        $prebooking->travelers()->delete();
+        $prebooking->delete();
+        return response()->json(['success' => true]);
+    }
+    
 }

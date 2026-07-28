@@ -201,7 +201,10 @@ function StepOption({ country, onBack, onSelect }) {
       </div>
       <div className="space-y-3">
         {(country.options || []).map((opt) => (
-          <div key={opt.id} onClick={() => onSelect(opt)}
+          <div key={opt.id} onClick={() => {
+              axios.post(`/api/evisa/options/${opt.id}/view`).catch(() => {}); // Envoi silencieux
+              onSelect(opt); 
+            }}
             className="card-hover bg-white rounded-2xl border border-[#EDE9E0] p-4 md:p-6 cursor-pointer flex gap-4 items-start hover:border-[#C9A84C]/40">
             <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ background: colors[opt.type_color] || colors.blue }} />
             <div className="flex-1 min-w-0">

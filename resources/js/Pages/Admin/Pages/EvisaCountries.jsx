@@ -42,6 +42,7 @@ export default function EvisaCountries() {
                   {c.flag_image_url ? <img src={c.flag_image_url} className="w-12 h-12 rounded-md object-cover" /> : <span className="text-3xl">{c.flag_emoji || '🌍'}</span>}
                 </td>
                 <td className="p-3"><strong>{c.name_fr}</strong><br /><small className="text-gray-400">{c.slug}</small></td>
+                <td className="p-3 font-mono font-bold text-[#3C8CB4]">{c.views || 0}</td>
                 <td className="p-3">{c.region || '—'}</td>
                 <td className="p-3">{c.is_active ? <Badge color="green">Actif</Badge> : <Badge color="red">Inactif</Badge>}</td>
                 <td className="p-3">{c.display_order}</td>

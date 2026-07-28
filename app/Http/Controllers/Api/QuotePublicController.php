@@ -22,7 +22,8 @@ class QuotePublicController extends Controller
             'nb_adults' => ['required', 'integer', 'min:1'],
             'nb_children' => ['nullable', 'integer', 'min:0'],
             'children_ages' => ['nullable', 'array'], // Tableau des âges
-            'hotel_stars' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'hotel_stars' => ['nullable', 'integer', 'min:1', 'max:5'],        
+            'hotel_preferences' => ['nullable', 'string', 'max:255'],
             'estimated_budget_dzd' => ['nullable', 'numeric', 'min:0'],
             'message' => ['nullable', 'string'],
             'recaptcha_token' => ['nullable', 'string']
@@ -43,9 +44,9 @@ class QuotePublicController extends Controller
             'nb_adults' => $data['nb_adults'],
             'nb_children' => $data['nb_children'] ?? 0,
             'children_ages' => json_encode($data['children_ages'] ?? []), // Sauvegarde en JSON
-            'hotel_stars' => $data['hotel_stars'] ?? null,
+            'hotel_stars' => null, // Ancien champ non utilisé
             'estimated_budget_dzd' => $data['estimated_budget_dzd'] ?? null,
-            'message' => $data['message'] ?? null,
+            'message' => "Hôtel souhaité : " . ($data['hotel_preferences'] ?? 'Non précisé') . "\n\nMessage : " . ($data['message'] ?? ''),
         ]);
 
         return response()->json(['success' => true, 'reference' => $quote->reference], 201);

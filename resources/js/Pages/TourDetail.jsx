@@ -90,7 +90,7 @@ export default function TourDetail({ tour }) {
               </div>
 
               {/* Barre d'onglets de navigation du programme */}
-              <div className="flex border-b border-[#F7F5F0] overflow-x-auto bg-white whitespace-nowrap hide-scrollbar">
+              <div className="flex border-b border-[#F7F5F0] overflow-x-auto bg-white whitespace-nowrap scrollbar-hide w-full max-w-[100vw]">
                 <TabButton active={activeTab === 'program'} onClick={() => setActiveTab('program')} label="🗺️ Programme" />
                 <TabButton active={activeTab === 'flights'} onClick={() => setActiveTab('flights')} label="✈️ Plan de Vol" />
                 <TabButton active={activeTab === 'included'} onClick={() => setActiveTab('included')} label="✅ Inclus dans le Pack" />
@@ -219,7 +219,7 @@ export default function TourDetail({ tour }) {
               </div>
 
               {/* Nombre de voyageurs */}
-              <div className="space-y-2.5 border-t border-[#F7F5F0] pt-4">
+              <div className="grid grid-cols-2 gap-3 pt-4">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Nombre de participants</label>
                 
                 <Counter label="Adultes" value={adults} min={1} onChange={setAdults} />
@@ -292,22 +292,16 @@ function TabButton({ active, onClick, label }) {
 // Composant interne réutilisable de compteur (Boutons +/- horizontaux)
 function Counter({ label, value, min, onChange }) {
   return (
-    <div className="flex items-center justify-between bg-[#F7F5F0] rounded-xl px-4 py-2.5 border border-[#EDE9E0]">
-      <span className="text-xs font-bold text-gray-500">{label}</span>
-      <div className="flex items-center gap-3" dir="ltr">
-        <button 
-          type="button" 
-          onClick={() => onChange(Math.max(min, value - 1))}
-          className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors flex items-center justify-center text-lg select-none"
-        >
+    <div className="flex flex-col items-center justify-center bg-white rounded-xl p-3 border border-[#EDE9E0] gap-2">
+      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider text-center w-full">{label}</span>
+      <div className="flex items-center justify-center gap-4 w-full" dir="ltr">
+        <button type="button" onClick={() => onChange(Math.max(min, value - 1))}
+          className="w-9 h-9 rounded-lg bg-[#F7F5F0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors text-xl flex items-center justify-center select-none shadow-sm border border-[#EDE9E0]">
           −
         </button>
         <span className="w-4 text-center font-bold text-[#00143C] text-sm mono">{value}</span>
-        <button 
-          type="button" 
-          onClick={() => onChange(value + 1)}
-          className="w-8 h-8 rounded-lg bg-white border border-[#EDE9E0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors flex items-center justify-center text-lg select-none"
-        >
+        <button type="button" onClick={() => onChange(value + 1)}
+          className="w-9 h-9 rounded-lg bg-[#F7F5F0] font-bold text-[#8892A4] hover:bg-[#EDE9E0] transition-colors text-xl flex items-center justify-center select-none shadow-sm border border-[#EDE9E0]">
           +
         </button>
       </div>

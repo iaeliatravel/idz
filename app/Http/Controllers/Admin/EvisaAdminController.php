@@ -124,7 +124,9 @@ class EvisaAdminController extends Controller
             $query->where('country_id', $request->input('country_id'));
         }
 
-        $options = $query->orderBy('display_order')->get()->map(function ($o) {
+        $options = $query->orderByDesc('views') // Optionnel: Tri par les options les plus vues
+                         ->orderBy('display_order')
+                         ->get()->map(function ($o) {
             $arr = $o->toArray();
             $arr['country_name'] = $o->country->name_fr ?? null;
 
@@ -290,19 +292,14 @@ class EvisaAdminController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function applicationsDestroy(EvisaApplication $application)
+    public function applicationsDestroy(\App\Models\EvisaApplication $application)
     {
-        DB::transaction(function () use ($application) {
-            // 1. Supprime les fichiers joints associés
-            $application->files()->delete();
-            // 2. Supprime l'historique des transactions de paiement
-            $application->payments()->delete();
-            // 3. Supprime les voyageurs secondaires rattachés
-            $application->travelers()->delete();
-            // 4. Supprime la demande principale
+        \Illuminate\Support\Facades\DB::transaction(function () use ($application) {
+            \App\Models\EvisaApplicationFile::where('application_id', $application->id)->delete();
+            \App\Models\EvisaApplicationTraveler::where('application_id', $application->id)->delete();
+            \App\Models\EvisaPayment::where('application_id', $application->id)->delete();
             $application->delete();
         });
-
         return response()->json(['success' => true]);
     }
     

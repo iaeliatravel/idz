@@ -1,63 +1,101 @@
 import { useEffect, useState } from 'react';
 import api from '../../../Utils/adminApi';
-import { Toolbar, Badge, EmptyState, IconButton, Modal, FormField, inputClass, formatDZD, formatDate, Spinner } from '../Shared/UI';
+import { Badge, EmptyState, IconButton, Modal, FormField, inputClass, formatDZD, formatDate, Spinner } from '../Shared/UI';
 
 const STATUS_LABELS = {
-  nouveau: '🆕 Nouveau', en_etude: '⏳ En étude', devis_envoye: '✉ Devis envoyé',
-  accepte: '✅ Accepté', refuse: '❌ Refusé', annule: '🚫 Annulé'
+  nouveau: '🆕 Nouveau', 
+  en_etude: '⏳ En étude', 
+  devis_envoye: '✉ Devis envoyé',
+  accepte: '✅ Accepté', 
+  refuse: '❌ Refusé', 
+  annule: '🚫 Annulé'
 };
-const STATUS_COLORS = { nouveau: 'blue', en_etude: 'amber', devis_envoye: 'purple', accepte: 'green', refuse: 'red', annule: 'red' };
+
+const STATUS_COLORS = { 
+  nouveau: 'blue', 
+  en_etude: 'amber', 
+  devis_envoye: 'purple', 
+  accepte: 'green', 
+  refuse: 'red', 
+  annule: 'red' 
+};
 
 export default function QuotesManager() {
   const [quotes, setQuotes] = useState(null);
   const [selected, setSelected] = useState(null);
 
+  // Charge la liste des demandes de devis depuis l'API protégée
   function load() {
     api.get('/quotes').then(({ data }) => setQuotes(data));
   }
+  
   useEffect(load, []);
 
   if (!quotes) return <div className="text-center py-20"><Spinner /></div>;
 
   async function handleDelete(q) {
-    if (!confirm('Supprimer définitivement cette demande de devis ?')) return;
+    if (!confirm(`Supprimer définitivement la demande de devis de ${q.customer_name} ?`)) return;
     await api.delete(`/quotes/${q.id}`);
     load();
   }
 
   return (
     <div>
-      <div className="bg-white rounded-xl border overflow-x-auto">
+      <div className="bg-white rounded-xl border overflow-x-auto shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500 text-xs uppercase">
+          <thead className="bg-gray-50 text-left text-gray-500 text-xs uppercase tracking-wider">
             <tr>
-              <th className="p-3">Référence</th><th className="p-3">Client</th><th className="p-3">Destination</th>
-              <th className="p-3">Nuits</th><th className="p-3">Budget</th><th className="p-3">Statut</th><th className="p-3"></th>
+              <th className="p-4">Référence</th>
+              <th className="p-4">Client</th>
+              <th className="p-4">Destination</th>
+              <th className="p-4">Durée</th>
+              <th className="p-4">Budget estimé</th>
+              <th className="p-4">Statut</th>
+              <th className="p-4">Date</th>
+              <th className="p-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-100">
             {quotes.length ? quotes.map((q) => (
-              <tr key={q.id} className="border-t hover:bg-gray-50">
-                <td className="p-3 font-bold">{q.reference}</td>
-                <td className="p-3">{q.customer_name}<br /><small className="text-gray-400">{q.customer_phone}</small></td>
-                <td className="p-3"><strong>{q.destination}</strong></td>
-                <td className="p-3">{q.duration_nights || '—'} n</td>
-                <td className="p-3">{q.estimated_budget_dzd ? formatDZD(q.estimated_budget_dzd) : '—'}</td>
-                <td className="p-3"><Badge color={STATUS_COLORS[q.status]}>{STATUS_LABELS[q.status]}</Badge></td>
-                <td className="p-3">
-                  <div className="flex gap-1">
-                    <IconButton title="Détails" onClick={() => setSelected(q)}>👁</IconButton>
+              <tr key={q.id} className="hover:bg-gray-50 transition-colors">
+                <td className="p-4 font-mono font-bold text-navy">{q.reference}</td>
+                <td className="p-4">
+                  <div className="font-semibold text-gray-900">{q.customer_name}</div>
+                  <div className="text-gray-400 text-xs mt-0.5">{q.customer_phone}</div>
+                </td>
+                <td className="p-4 font-semibold text-gray-700">{q.destination}</td>
+                <td className="p-4">{q.duration_nights ? `${q.duration_nights} nuits` : '—'}</td>
+                <td className="p-4 font-mono text-green-700 font-semibold">
+                  {q.estimated_budget_dzd ? formatDZD(q.estimated_budget_dzd) : '—'}
+                </td>
+                <td className="p-4">
+                  <Badge color={STATUS_COLORS[q.status]}>{STATUS_LABELS[q.status]}</Badge>
+                </td>
+                <td className="p-4 text-gray-500">{formatDate(q.created_at)}</td>
+                <td className="p-4">
+                  <div className="flex justify-end gap-2">
+                    <IconButton title="Voir les détails" onClick={() => setSelected(q)}>👁</IconButton>
                     <IconButton title="Supprimer" danger onClick={() => handleDelete(q)}>🗑️</IconButton>
                   </div>
                 </td>
               </tr>
-            )) : <tr><td colSpan={7}><EmptyState icon="💼" text="Aucune demande de devis pour l'instant." /></td></tr>}
+            )) : (
+              <tr>
+                <td colSpan={8}>
+                  <EmptyState icon="💼" text="Aucune demande de devis pour l'instant." />
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
       {selected && (
-        <QuoteDetailModal quote={selected} onClose={() => setSelected(null)} onSaved={() => { setSelected(null); load(); }} />
+        <QuoteDetailModal 
+          quote={selected} 
+          onClose={() => setSelected(null)} 
+          onSaved={() => { setSelected(null); load(); }} 
+        />
       )}
     </div>
   );
@@ -67,6 +105,16 @@ function QuoteDetailModal({ quote, onClose, onSaved }) {
   const [status, setStatus] = useState(quote.status);
   const [notes, setNotes] = useState(quote.admin_notes || '');
   const [saving, setSaving] = useState(false);
+
+  // Analyse sécurisée des âges des enfants (stockés en JSON dans la DB)
+  let parsedAges = [];
+  if (quote.children_ages) {
+    try {
+      parsedAges = JSON.parse(quote.children_ages);
+    } catch (e) {
+      console.error("Erreur de lecture des âges enfants", e);
+    }
+  }
 
   async function handleSave(e) {
     e.preventDefault();
@@ -80,36 +128,95 @@ function QuoteDetailModal({ quote, onClose, onSaved }) {
   }
 
   return (
-    <Modal title={`Demande de Devis — ${quote.reference}`} onClose={onClose}>
-      <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-        <div><strong>Nom du client :</strong> {quote.customer_name}</div>
-        <div><strong>Téléphone :</strong> {quote.customer_phone}</div>
-        <div><strong>E-mail :</strong> {quote.customer_email}</div>
-        <div><strong>Destination :</strong> {quote.destination}</div>
-        <div><strong>Voyageurs :</strong> {quote.nb_adults} Adultes, {quote.nb_children} Enfants</div>
-        <div><strong>Durée :</strong> {quote.duration_nights || 'Non précisé'} nuits</div>
-        <div><strong>Hôtel :</strong> {quote.hotel_stars ? `${quote.hotel_stars} étoiles ★` : 'Non précisé'}</div>
-        <div><strong>Budget estimé :</strong> {quote.estimated_budget_dzd ? formatDZD(quote.estimated_budget_dzd) : 'Non précisé'}</div>
+    <Modal title={`Traitement Devis — ${quote.reference}`} onClose={onClose} maxWidth="600px">
+      
+      {/* ── PANNEAU D'INFORMATIONS DU CLIENT ── */}
+      <div className="bg-gray-50 border border-gray-100 rounded-xl p-5 mb-5 grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
+        <div>
+          <span className="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Client</span>
+          <strong className="text-navy">{quote.customer_name}</strong>
+        </div>
+        <div>
+          <span className="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Contact</span>
+          <div className="text-gray-800 font-semibold">{quote.customer_phone}</div>
+          {quote.customer_email && <div className="text-blue-600 mt-0.5">{quote.customer_email}</div>}
+        </div>
+        
+        <div>
+          <span className="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Destination Souhaitée</span>
+          <strong className="text-gray-800">{quote.destination}</strong>
+        </div>
+        <div>
+          <span className="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Date & Durée</span>
+          <div className="text-gray-800">
+            {quote.departure_date ? formatDate(quote.departure_date) : 'Date flexible'} 
+            {quote.duration_nights && <span className="text-gray-500"> ({quote.duration_nights} nuits)</span>}
+          </div>
+        </div>
+
+        <div>
+          <span className="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Voyageurs</span>
+          <div className="text-gray-800 font-medium">
+            {quote.nb_adults} Adulte(s) {quote.nb_children > 0 && `, ${quote.nb_children} Enfant(s)`}
+          </div>
+          {parsedAges.length > 0 && (
+            <div className="text-xs text-gray-500 mt-1">
+              Âges : {parsedAges.map(a => a === 0 ? 'Bébé' : `${a} an(s)`).join(' / ')}
+            </div>
+          )}
+        </div>
+        
+        <div>
+          <span className="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Budget Estimatif</span>
+          <strong className="text-green-600 text-lg mono">
+            {quote.estimated_budget_dzd ? formatDZD(quote.estimated_budget_dzd) : 'Non défini'}
+          </strong>
+        </div>
       </div>
 
+      {/* ── MESSAGE ET PRÉFÉRENCES (HÔTEL) ── */}
       {quote.message && (
-        <div className="mb-4 bg-gray-50 p-3 rounded-lg text-sm">
-          <strong>Message client :</strong>
-          <p className="text-gray-600 mt-1 whitespace-pre-line">{quote.message}</p>
+        <div className="mb-5 bg-amber-50 border border-amber-100 p-4 rounded-xl text-sm">
+          <strong className="text-amber-800 flex items-center gap-2 mb-2">
+            <span>📝</span> Demande spéciale / Hôtel souhaité
+          </strong>
+          <p className="text-amber-900/80 leading-relaxed whitespace-pre-line">
+            {quote.message}
+          </p>
         </div>
       )}
 
-      <form onSubmit={handleSave} className="border-t pt-4">
-        <FormField label="Statut de l'étude">
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputClass}>
-            {Object.entries(STATUS_LABELS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
-          </select>
+      {/* ── FORMULAIRE DE MISE À JOUR (STATUT & NOTES) ── */}
+      <form onSubmit={handleSave} className="border-t border-gray-100 pt-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <FormField label="Statut du dossier">
+            <select 
+              value={status} 
+              onChange={(e) => setStatus(e.target.value)} 
+              className={`${inputClass} font-semibold`}
+            >
+              {Object.entries(STATUS_LABELS).map(([k, label]) => (
+                <option key={k} value={k}>{label}</option>
+              ))}
+            </select>
+          </FormField>
+        </div>
+
+        <FormField label="Notes internes (visibles uniquement par l'équipe)">
+          <textarea 
+            value={notes} 
+            onChange={(e) => setNotes(e.target.value)} 
+            rows={3} 
+            placeholder="Ex: Client rappelé le 14/05, devis envoyé par email..."
+            className={`${inputClass} bg-yellow-50 resize-none`} 
+          />
         </FormField>
-        <FormField label="Notes internes de traitement">
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className={inputClass} />
-        </FormField>
-        <button disabled={saving} className="w-full py-3 bg-gradient-to-br from-navy to-skyblue text-white rounded-full font-bold disabled:opacity-50">
-          {saving ? 'Enregistrement...' : 'Mettre à jour'}
+        
+        <button 
+          disabled={saving} 
+          className="w-full mt-2 py-3 bg-gradient-to-br from-navy to-navy-light text-white rounded-xl font-bold disabled:opacity-50 hover:shadow-md transition-shadow"
+        >
+          {saving ? 'Enregistrement en cours...' : 'Enregistrer les modifications'}
         </button>
       </form>
     </Modal>

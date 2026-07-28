@@ -13,7 +13,7 @@ class EvisaOption extends Model
     protected $fillable = [
         'country_id', 'label_fr', 'label_en', 'label_ar', 'type_color',
         'delai_fr', 'validite_fr', 'cost_price_dzd', 'sale_price_dzd',
-        'note_fr', 'conditions_fr', 'is_active', 'display_order',
+        'note_fr', 'conditions_fr', 'is_active', 'views', 'display_order', // <-- 'views' a été ajouté
     ];
 
     protected function casts(): array

@@ -77,6 +77,11 @@ Route::get('/admin/{any?}', fn () => Inertia::render('Admin/App'))
 */
 Route::prefix('api')->group(function () {
 
+    Route::post('/evisa/options/{id}/view', function ($id) {
+        \App\Models\EvisaOption::where('id', $id)->increment('views');
+        return response()->json(['success' => true]);
+    });
+
     // Voyages organisés publics
     Route::get('/tours', [TourPublicController::class, 'index']);
     Route::get('/tours/{slug}', [TourPublicController::class, 'show']);
@@ -205,6 +210,8 @@ Route::prefix('api')->group(function () {
         Route::get('/omra/simulations', [OmraAdminController::class, 'simulationsIndex']);
         
         Route::post('/omra/departures/{departure}/duplicate', [OmraAdminController::class, 'duplicate']);
+
+        Route::delete('/omra/prebookings/{prebooking}', [OmraAdminController::class, 'prebookingsDestroy']);
 
         // Général
         Route::get('/messages', [GeneralAdminController::class, 'messagesIndex']);

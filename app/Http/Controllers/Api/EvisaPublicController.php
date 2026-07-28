@@ -44,6 +44,8 @@ class EvisaPublicController extends Controller
             ->with(['options' => fn ($q) => $q->where('is_active', true)->orderBy('display_order'), 'options.requiredDocuments'])
             ->firstOrFail();
 
+        $country->increment('views');
+
         return response()->json([
             'id'          => $country->id,
             'name_fr'     => $country->name_fr,

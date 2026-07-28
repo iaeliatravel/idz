@@ -49,6 +49,7 @@ export default function EvisaOptions() {
               <tr key={o.id} className="border-t hover:bg-gray-50">
                 <td className="p-3">{o.country_name}</td>
                 <td className="p-3"><strong>{o.label_fr}</strong></td>
+                <td className="p-3 font-mono font-bold text-[#3C8CB4]">{o.views || 0}</td>
                 <td className="p-3">{o.delai_fr || '—'}</td>
                 <td className="p-3">{formatDZD(o.cost_price_dzd)}</td>
                 <td className="p-3">{formatDZD(o.sale_price_dzd)}</td>

@@ -11,7 +11,7 @@ class EvisaCountry extends Model
 
     protected $fillable = [
         'name_fr', 'name_en', 'name_ar', 'slug', 'flag_image_url', 'flag_emoji',
-        'region', 'is_active', 'display_order',
+        'region', 'is_active', 'views', 'display_order', // <-- 'views' a été ajouté
     ];
 
     protected function casts(): array

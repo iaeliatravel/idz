@@ -22,6 +22,12 @@ export default function OmraPrebookings() {
   if (!list) return <div className="text-center py-20"><Spinner /></div>;
 
   const filtered = list.filter((pb) => !search || JSON.stringify(pb).toLowerCase().includes(search.toLowerCase()));
+  
+  async function handleDelete(pb) {
+    if (!confirm('Voulez-vous vraiment supprimer cette pré-réservation ?')) return;
+    await api.delete(`/omra/prebookings/${pb.id}`);
+    load();
+  }
 
   return (
     <div>
@@ -50,6 +56,12 @@ export default function OmraPrebookings() {
                 <td className="p-3 text-green font-bold">{formatDZD(pb.benefit)}</td>
                 <td className="p-3"><Badge color={STATUS_COLORS[pb.status]}>{STATUS_LABELS[pb.status]}</Badge></td>
                 <td className="p-3"><IconButton title="Détails" onClick={() => setSelected(pb)}>👁</IconButton></td>
+                <td className="p-3">
+                  <div className="flex gap-1">
+                    <IconButton title="Détails" onClick={() => setSelected(pb)}>👁</IconButton>
+                    <IconButton title="Supprimer" danger onClick={() => handleDelete(pb)}>🗑️</IconButton>
+                  </div>
+                </td>
               </tr>
             )) : <tr><td colSpan={9}><EmptyState icon="📥" text="Aucune pré-réservation." /></td></tr>}
           </tbody>

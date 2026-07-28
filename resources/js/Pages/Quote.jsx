@@ -15,6 +15,7 @@ export default function Quote() {
     nb_adults: 2,
     nb_children: 0,
     estimated_budget_dzd: '',
+    hotel_preferences: '',
     message: ''
   });
   const [status, setStatus] = useState('idle'); // idle | sending | success | error
@@ -226,6 +227,21 @@ export default function Quote() {
               )}
             </StepCard>
 
+            <StepCard index={4} title="Vos préférences" optional>
+              <div className="space-y-4">
+                <FormField label="Hôtel souhaité" value={form.hotel_preferences} onChange={(v) => setForm({ ...form, hotel_preferences: v })} placeholder="Ex. : Hilton, Rixos..." icon="🏨" />
+                
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">Budget par hôtel (DZD)</label>
+                  <div className="relative flex items-center bg-[#F7F5F0] border border-[#EDE9E0] rounded-xl px-4 py-3 w-full">
+                    <span className="text-gray-400 ml-2">💰</span>
+                    <input type="number" value={form.estimated_budget_dzd} onChange={(e) => setForm({ ...form, estimated_budget_dzd: e.target.value })} placeholder="Ex. : 250000" className="w-full bg-transparent border-0 outline-none text-sm p-0 focus:ring-0 text-[#00143C] placeholder-gray-400" />
+                  </div>
+                  <span className="text-[10px] text-[#8892A4] mt-1 block">Indiquez le montant en DA (hors vol/transfert).</span>
+                </div>
+              </div>
+            </StepCard>
+
             {/* Étape 5 : Coordonnées */}
             <StepCard index={5} title="Vos coordonnées">
               <p className="text-xs text-[#8892A4] mb-3 leading-relaxed">
@@ -249,7 +265,7 @@ export default function Quote() {
                 {status === 'sending' ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    جاري الإرسال...
+                    En cours d'envoi..
                   </>
                 ) : (
                   <>

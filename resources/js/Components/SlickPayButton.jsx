@@ -96,15 +96,15 @@ export function SuccessStep({ reference, applicationId, amount, nbTravelers = 1 
           <ul className="space-y-4 text-sm text-[#8892A4]">
             <li className="flex items-start gap-3">
               <span className="w-5 h-5 rounded-full bg-[#0F6E56]/10 text-[#0F6E56] flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
-              <span>Un conseiller d'Aelia Travel va vous appeler ou vous envoyer un e-mail sous <strong>24 heures</strong> pour valider vos documents.</span>
+              <span>Un conseiller d'Aelia Travel va vous appeler ou vous envoyer un e-mail sous 24 heures pour <strong>valider votre demande</strong>.</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="w-5 h-5 rounded-full bg-[#0F6E56]/10 text-[#0F6E56] flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-              <span>Nous planifierons ensemble votre rendez-vous de dépôt et de règlement.</span>
+              <span>Nous planifierons ensemble votre <strong>rendez-vous de règlement des frais</strong>.</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="w-5 h-5 rounded-full bg-[#0F6E56]/10 text-[#0F6E56] flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
-              <span>Vous pourrez régler directement au niveau de notre agence (en espèces ou par chèque).</span>
+              <span>Vous pourrez régler directement au niveau de notre agence.</span>
             </li>
           </ul>
         </div>
