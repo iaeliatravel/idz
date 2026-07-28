@@ -14,9 +14,9 @@ return [
     'lottery' => [2, 100],
     'cookie' => env('SESSION_COOKIE', 'aelia_session'),
     'path' => env('SESSION_PATH', '/'),
-    'domain' => env('SESSION_DOMAIN'),
+    'domain' => env('SESSION_DOMAIN', '.aeliatravelagency.dz'),
     'secure' => env('SESSION_SECURE_COOKIE', true),
     'http_only' => true,
-    'same_site' => env('SESSION_SAME_SITE', 'lax'),
+    'same_site' => 'lax',
     'partitioned' => false,
 ];
