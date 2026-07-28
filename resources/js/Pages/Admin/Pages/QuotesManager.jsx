@@ -106,14 +106,15 @@ function QuoteDetailModal({ quote, onClose, onSaved }) {
   const [notes, setNotes] = useState(quote.admin_notes || '');
   const [saving, setSaving] = useState(false);
 
-  // Analyse sécurisée des âges des enfants (stockés en JSON dans la DB)
   let parsedAges = [];
-  if (quote.children_ages) {
+  if (typeof quote.children_ages === 'string') {
     try {
       parsedAges = JSON.parse(quote.children_ages);
     } catch (e) {
       console.error("Erreur de lecture des âges enfants", e);
     }
+  } else if (Array.isArray(quote.children_ages)) {
+    parsedAges = quote.children_ages;
   }
 
   async function handleSave(e) {
@@ -159,9 +160,9 @@ function QuoteDetailModal({ quote, onClose, onSaved }) {
           <div className="text-gray-800 font-medium">
             {quote.nb_adults} Adulte(s) {quote.nb_children > 0 && `, ${quote.nb_children} Enfant(s)`}
           </div>
-          {parsedAges.length > 0 && (
-            <div className="text-xs font-bold text-[#C9A84C] mt-1 bg-[#FFF9EC] inline-block px-2 py-1 rounded-md border border-[#C9A84C]/20">
-              Âges enfants : {parsedAges.map(a => a === 0 ? 'Bébé (<1an)' : `${a} an(s)`).join(' / ')}
+          {parsedAges && parsedAges.length > 0 && (
+            <div className="text-xs font-bold text-[#C9A84C] mt-1.5 bg-[#FFF9EC] inline-block px-2.5 py-1.5 rounded-lg border border-[#C9A84C]/20 shadow-sm">
+              Âges : {parsedAges.map(a => Number(a) === 0 ? 'Bébé (<1 an)' : `${a} an(s)`).join(' / ')}
             </div>
           )}
         </div>
