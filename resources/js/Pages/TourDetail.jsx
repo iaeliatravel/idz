@@ -11,8 +11,11 @@ const OCC_LABELS = {
 };
 
 export default function TourDetail({ tour }) {
-  // Correction du Simulateur : Laravel peut renvoyer hotel_options ou hotelOptions
+  // Laravel peut renvoyer la relation sous 'hotel_options' ou 'hotelOptions'.
+  // On gère les deux cas pour être 100% sûr que les tarifs s'affichent.
   const options = tour.hotel_options || tour.hotelOptions || [];
+  
+  // On sélectionne la première option par défaut si elle existe
   const [selectedHotelId, setSelectedHotelId] = useState(options.length > 0 ? String(options[0].id) : '');
   const [occupancy, setOccupancy] = useState('price_double_dzd');
   
@@ -21,30 +24,31 @@ export default function TourDetail({ tour }) {
   const [childWithBed, setChildWithBed] = useState(0);
   const [childNoBed, setChildNoBed] = useState(0);
   const [infants, setInfants] = useState(0);
+  
+  // Estimation du prix total en direct
   const [totalPrice, setTotalPrice] = useState(0);
-
-  // Formulaire
-  const [form, setForm] = useState({ customer_name: '', customer_phone: '', customer_email: '' });
-  const [status, setStatus] = useState('idle');
-  const [ref, setRef] = useState(null);
-  const { getToken } = useRecaptcha();
 
   // Recalcul du prix en temps réel
   useEffect(() => {
+    // Si aucune option n'est chargée ou sélectionnée, on arrête
+    if (options.length === 0 || !selectedHotelId) return;
+
+    // On trouve l'hôtel sélectionné
     const hotel = options.find(h => String(h.id) === selectedHotelId);
     if (!hotel) return;
 
+    // Calcul des prix
     const adultUnitPrice = Number(hotel[occupancy] || 0);
     const childWithBedPrice = Number(hotel.price_child_with_bed_dzd || 0);
     const childNoBedPrice = Number(hotel.price_child_no_bed_dzd || 0);
     const infantPrice = Number(hotel.price_infant_dzd || 0);
 
-    setTotalPrice(
-      (adults * adultUnitPrice) +
-      (childWithBed * childWithBedPrice) +
-      (childNoBed * childNoBedPrice) +
-      (infants * infantPrice)
-    );
+    const calculated = (adults * adultUnitPrice) +
+                       (childWithBed * childWithBedPrice) +
+                       (childNoBed * childNoBedPrice) +
+                       (infants * infantPrice);
+
+    setTotalPrice(calculated);
   }, [selectedHotelId, occupancy, adults, childWithBed, childNoBed, infants, options]);
 
   async function handleBook(e) {

@@ -95,7 +95,7 @@ private function validateTour(Request $request): array
             'destination' => ['required', 'string', 'max:160'],
             'departure_date' => ['required', 'date'],
             'return_date' => ['required', 'date'],
-            'price_dzd' => ['required', 'numeric', 'min:0'],
+            'price_dzd' => ['required', 'numeric', 'min:0'], // Doit être requis
             'price_child_dzd' => ['nullable', 'numeric', 'min:0'], // <-- AJOUT DE CETTE LIGNE
             'seats_total' => ['nullable', 'integer'],
             'seats_remaining' => ['nullable', 'integer'],

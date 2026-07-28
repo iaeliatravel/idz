@@ -18,9 +18,10 @@ class TourPublicController extends Controller
 
     public function show(string $slug)
     {
-        $tour = \App\Models\Tour::where('slug', $slug)
+        // On charge la relation 'hotelOptions' pour que le simulateur reçoive les tarifs
+        $tour = Tour::where('slug', $slug)
             ->where('is_active', true)
-            ->with('hotelOptions') // <-- C'est cette ligne qui charge les hôtels pour le simulateur
+            ->with('hotelOptions') // <-- C'est cette ligne qui fait la magie !
             ->firstOrFail();
 
         return response()->json($tour);
