@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import MainLayout from '../Layouts/MainLayout';
@@ -11,9 +11,9 @@ const OCC_LABELS = {
 };
 
 export default function TourDetail({ tour }) {
-  // Gère de manière sécurisée les options d'hôtel
+  // Récupération ultra-sécurisée des hôtels (Simulateur)
   const options = tour.hotel_options || tour.hotelOptions || [];
-  const [selectedHotelId, setSelectedHotelId] = useState(options.length > 0 ? String(options[0].id) : '');
+  const [selectedHotelId, setSelectedHotelId] = useState('');
   const [occupancy, setOccupancy] = useState('price_double_dzd');
   const [activeTab, setActiveTab] = useState('program');
   
@@ -23,7 +23,6 @@ export default function TourDetail({ tour }) {
   const [childNoBed, setChildNoBed] = useState(0);
   const [infants, setInfants] = useState(0);
   
-  // Estimation du prix total en direct
   const [totalPrice, setTotalPrice] = useState(0);
 
   // Formulaire
@@ -32,22 +31,30 @@ export default function TourDetail({ tour }) {
   const [ref, setRef] = useState(null);
   const { getToken } = useRecaptcha();
 
+  // Initialiser le premier hôtel s'il existe
+  useEffect(() => {
+    if (options.length > 0 && !selectedHotelId) {
+      setSelectedHotelId(String(options[0].id));
+    }
+  }, [options]);
+
   // Recalcul du prix en temps réel
   useEffect(() => {
     if (options.length === 0 || !selectedHotelId) {
         setTotalPrice(0);
         return;
     }
-    const hotel = options.find(h => String(h.id) === selectedHotelId);
+    
+    const hotel = options.find(h => String(h.id) === String(selectedHotelId));
     if (!hotel) {
         setTotalPrice(0);
         return;
     }
 
-    const adultUnitPrice = Number(hotel[occupancy] || 0);
-    const childWithBedPrice = Number(hotel.price_child_with_bed_dzd || 0);
-    const childNoBedPrice = Number(hotel.price_child_no_bed_dzd || 0);
-    const infantPrice = Number(hotel.price_infant_dzd || 0);
+    const adultUnitPrice = Number(hotel[occupancy]) || 0;
+    const childWithBedPrice = Number(hotel.price_child_with_bed_dzd) || 0;
+    const childNoBedPrice = Number(hotel.price_child_no_bed_dzd) || 0;
+    const infantPrice = Number(hotel.price_infant_dzd) || 0;
 
     const calculated = (adults * adultUnitPrice) +
                        (childWithBed * childWithBedPrice) +
@@ -82,131 +89,120 @@ export default function TourDetail({ tour }) {
       <Head title={`${tour.title_fr} — Aelia Travel`} />
 
       <div className="bg-[#F7F5F0] pt-28 pb-32 min-h-screen">
-        <div className="max-w-[1200px] mx-auto px-4 grid lg:grid-cols-[1.6fr_1fr] gap-8 items-start">
+        {/* Le max-w-[1100px] et le gap adaptatif assurent que ça ne dépasse pas sur mobile */}
+        <div className="max-w-[1100px] mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6 lg:gap-8 items-start">
           
           {/* ---- COLONNE GAUCHE : DÉTAILS DU VOYAGE ---- */}
-          <div className="space-y-6">
+          <div className="space-y-6 w-full overflow-hidden">
             
             <div className="bg-white rounded-[24px] border border-[#EDE9E0] overflow-hidden shadow-soft">
-              <div className="h-64 md:h-[400px] w-full relative">
+              <div className="h-64 md:h-80 w-full overflow-hidden bg-gray-100 relative">
                 <img src={tour.cover_image_url || fallbackImage} className="w-full h-full object-cover" alt={tour.title_fr} />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#00143C]/80 via-transparent to-transparent" />
-                <div className="absolute bottom-6 left-6 right-6 text-white">
-                  <span className="text-xs bg-[#C9A84C] text-[#00143C] font-bold px-3 py-1 rounded-full mb-3 inline-block">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-4 left-4 md:left-6 text-white text-left">
+                  <span className="text-[10px] md:text-xs bg-[#C9A84C] text-[#00143C] font-bold px-3 py-1 rounded-full inline-block mb-2">
                     📍 {tour.destination}
                   </span>
-                  <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight">{tour.title_fr}</h1>
+                  <h1 className="text-2xl md:text-3xl font-bold text-white leading-tight">{tour.title_fr}</h1>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-[#F7F5F0] border-t border-[#EDE9E0]">
-                <div className="p-4 text-center">
-                  <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Départ</div>
-                  <div className="font-bold text-navy text-sm">{new Date(tour.departure_date).toLocaleDateString('fr-DZ', { day: '2-digit', month: 'short' })}</div>
-                </div>
-                <div className="p-4 text-center">
-                  <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Retour</div>
-                  <div className="font-bold text-navy text-sm">{new Date(tour.return_date).toLocaleDateString('fr-DZ', { day: '2-digit', month: 'short' })}</div>
-                </div>
-                <div className="p-4 text-center col-span-2 md:col-span-2 bg-[#FFF9EC]">
-                  <div className="text-[10px] text-[#C9A84C] font-bold uppercase mb-1">À partir de</div>
-                  <div className="font-bold text-navy text-lg mono">{Number(tour.price_dzd).toLocaleString('fr-DZ')} DZD</div>
-                </div>
+
+              {/* Barre d'onglets corrigée : défilement horizontal propre sur mobile */}
+              <div className="flex border-b border-[#F7F5F0] overflow-x-auto bg-white scrollbar-hide w-full">
+                <TabButton active={activeTab === 'program'} onClick={() => setActiveTab('program')} label="🗺️ Programme" />
+                <TabButton active={activeTab === 'flights'} onClick={() => setActiveTab('flights')} label="✈️ Plan de Vol" />
+                <TabButton active={activeTab === 'included'} onClick={() => setActiveTab('included')} label="✅ Inclus dans le Pack" />
+                <TabButton active={activeTab === 'remarks'} onClick={() => setActiveTab('remarks')} label="📌 Infos & Remarques" />
               </div>
-            </div>
 
-            {/* Onglets Scrollables pour mobile */}
-            <div className="flex border-b border-[#EDE9E0] overflow-x-auto bg-white rounded-t-2xl whitespace-nowrap scrollbar-hide w-full">
-              <TabButton active={activeTab === 'program'} onClick={() => setActiveTab('program')} label="🗺️ Programme" />
-              <TabButton active={activeTab === 'flights'} onClick={() => setActiveTab('flights')} label="✈️ Plan de Vol" />
-              <TabButton active={activeTab === 'included'} onClick={() => setActiveTab('included')} label="✅ Inclus dans le Pack" />
-              <TabButton active={activeTab === 'remarks'} onClick={() => setActiveTab('remarks')} label="📌 Infos & Remarques" />
-            </div>
-
-            <div className="bg-white rounded-b-2xl border border-t-0 border-[#EDE9E0] p-6 shadow-soft">
-              {activeTab === 'program' && (
-                <div className="space-y-6 text-left">
-                  {Array.isArray(tour.program) && tour.program.length > 0 ? (
-                    tour.program.map((day, idx) => (
-                      <div key={idx} className="flex gap-4 items-start">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00143C] to-[#0F2D5C] text-[#C9A84C] flex flex-col items-center justify-center font-bold flex-shrink-0 shadow-md">
-                          <span className="text-[9px] uppercase">Jour</span>
-                          <span className="text-lg leading-none">{day.day || idx + 1}</span>
+              <div className="p-5 md:p-8">
+                {/* PROGRAMME */}
+                {activeTab === 'program' && (
+                  <div className="space-y-6 text-left">
+                    {Array.isArray(tour.program) && tour.program.length > 0 ? (
+                      tour.program.map((day, idx) => (
+                        <div key={idx} className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start">
+                          <div className="w-auto sm:w-16 h-8 sm:h-16 px-3 sm:px-0 rounded-lg sm:rounded-xl bg-[#0F6E56]/10 text-[#0F6E56] flex items-center justify-center font-bold flex-shrink-0">
+                            <span className="text-xs sm:text-sm">Jour {day.day || idx + 1}</span>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-bold text-navy text-sm md:text-base">{day.title}</h4>
+                            <p className="text-gray-500 text-xs md:text-sm mt-1.5 leading-relaxed">{day.description}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 mt-1">
-                          <h4 className="font-bold text-navy text-base">{day.title}</h4>
-                          <p className="text-gray-600 text-sm mt-2 leading-relaxed">{day.description}</p>
-                        </div>
-                      </div>
-                    ))
-                  ) : <p className="text-gray-400 text-sm">Le programme détaillé sera fourni par nos conseillers.</p>}
-                </div>
-              )}
-
-              {activeTab === 'flights' && (
-                <div className="space-y-4 text-left">
-                  {Array.isArray(tour.flights) && tour.flights.length > 0 ? (
-                    tour.flights.map((flight, idx) => (
-                      <div key={idx} className="bg-[#F7F5F0] rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-[#EDE9E0]">
-                        <div>
-                          <div className="text-xs text-gray-400 font-bold uppercase mb-1">Vol {idx === 0 ? 'Aller' : 'Retour'}</div>
-                          <div className="font-bold text-navy text-base">{flight.from} ➔ {flight.to}</div>
-                          <div className="text-xs text-gray-500 mt-1">Compagnie : <span className="font-semibold">{flight.airline || 'Non spécifiée'}</span></div>
-                          {flight.escale && (
-                            <div className="mt-2 text-[11px] font-bold text-amber-700 bg-amber-100 inline-block px-2.5 py-1 rounded-md border border-amber-200">
-                              ⏱ Escale à {flight.escale} ({flight.escale_duration || '?'})
-                            </div>
-                          )}
-                        </div>
-                        <div className="w-full md:w-auto border-t md:border-t-0 border-[#EDE9E0] pt-3 md:pt-0 text-left md:text-right">
-                          <div className="text-xs text-[#C9A84C] font-bold uppercase">{flight.date}</div>
-                          <div className="text-lg font-bold text-navy mono mt-0.5">{flight.time || '—'}</div>
-                        </div>
-                      </div>
-                    ))
-                  ) : <p className="text-gray-400 text-sm">Les détails des vols vous seront communiqués lors de la validation.</p>}
-                </div>
-              )}
-
-              {activeTab === 'included' && (
-                <div className="grid md:grid-cols-2 gap-6 text-left">
-                  <div>
-                    <h4 className="font-bold text-[#0F6E56] text-sm mb-3">🟢 Compris</h4>
-                    <ul className="space-y-2 text-sm text-gray-600">
-                      {Array.isArray(tour.included_pack) && tour.included_pack.length > 0 ? 
-                        tour.included_pack.map((item, idx) => <li key={idx}>✓ {item}</li>) : <li>Voir contrat.</li>}
-                    </ul>
+                      ))
+                    ) : <p className="text-gray-400 text-sm">Le programme détaillé sera fourni par nos conseillers.</p>}
                   </div>
-                  <div>
-                    <h4 className="font-bold text-red-500 text-sm mb-3">🔴 Non Compris</h4>
-                    <ul className="space-y-2 text-sm text-gray-600">
-                      {Array.isArray(tour.excluded_pack) && tour.excluded_pack.length > 0 ? 
-                        tour.excluded_pack.map((item, idx) => <li key={idx}>✕ {item}</li>) : <li>Frais personnels.</li>}
-                    </ul>
-                  </div>
-                </div>
-              )}
+                )}
 
-              {activeTab === 'remarks' && (
-                <div className="text-left text-sm text-gray-500 leading-relaxed whitespace-pre-line">
-                  {tour.remarks || "Aucune remarque particulière."}
-                </div>
-              )}
+                {/* VOLS */}
+                {activeTab === 'flights' && (
+                  <div className="space-y-4 text-left">
+                    {Array.isArray(tour.flights) && tour.flights.length > 0 ? (
+                      tour.flights.map((flight, idx) => (
+                        <div key={idx} className="bg-[#F7F5F0] rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border border-[#EDE9E0]">
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Vol {idx === 0 ? 'Aller' : 'Retour'}</div>
+                            <div className="font-bold text-navy text-sm">{flight.from} ➔ {flight.to}</div>
+                            <div className="text-[10px] text-gray-500 mt-1">Compagnie : <span className="font-semibold">{flight.airline || 'Non spécifiée'}</span></div>
+                            {flight.escale && (
+                              <div className="mt-2 text-[10px] font-bold text-amber-700 bg-amber-100 inline-block px-2 py-1 rounded border border-amber-200">
+                                ⏱ Escale : {flight.escale} ({flight.escale_duration || '?'})
+                              </div>
+                            )}
+                          </div>
+                          <div className="w-full sm:w-auto border-t sm:border-t-0 border-[#EDE9E0] pt-2 sm:pt-0 text-left sm:text-right">
+                            <div className="text-[10px] text-[#C9A84C] font-bold uppercase">{flight.date}</div>
+                            <div className="text-base font-bold text-navy mono mt-0.5">{flight.time || '—'}</div>
+                          </div>
+                        </div>
+                      ))
+                    ) : <p className="text-gray-400 text-sm">Les détails des vols vous seront communiqués lors de la validation.</p>}
+                  </div>
+                )}
+
+                {/* INCLUS / EXCLUS */}
+                {activeTab === 'included' && (
+                  <div className="grid sm:grid-cols-2 gap-6 text-left">
+                    <div>
+                      <h4 className="font-bold text-[#0F6E56] text-sm mb-3">🟢 Ce qui est inclus :</h4>
+                      <ul className="space-y-2 text-xs md:text-sm text-gray-500">
+                        {Array.isArray(tour.included_pack) && tour.included_pack.length > 0 ? 
+                          tour.included_pack.map((item, idx) => <li key={idx} className="flex gap-2"><span className="text-[#0F6E56] flex-shrink-0">✓</span> <span>{item}</span></li>) : <li>Veuillez vous référer au contrat de voyage.</li>}
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-red-500 text-sm mb-3">🔴 Non inclus :</h4>
+                      <ul className="space-y-2 text-xs md:text-sm text-gray-500">
+                        {Array.isArray(tour.excluded_pack) && tour.excluded_pack.length > 0 ? 
+                          tour.excluded_pack.map((item, idx) => <li key={idx} className="flex gap-2"><span className="text-red-500 flex-shrink-0">✕</span> <span>{item}</span></li>) : <li>Frais personnels, assurances optionnelles.</li>}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {/* REMARQUES */}
+                {activeTab === 'remarks' && (
+                  <div className="text-left text-sm text-gray-500 leading-relaxed whitespace-pre-line">
+                    {tour.remarks || "Aucune remarque particulière."}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* ---- COLONNE DROITE : SIMULATEUR ---- */}
-          <div className="bg-white rounded-[28px] border border-[#EDE9E0] p-6 shadow-soft lg:sticky lg:top-24">
-            <h3 className="text-lg font-bold text-navy mb-5 uppercase tracking-wide">Simulateur de Tarif</h3>
+          {/* ---- COLONNE DROITE : SIMULATEUR & RÉSERVATION ---- */}
+          <div className="bg-white rounded-[24px] border border-[#EDE9E0] p-5 shadow-soft w-full lg:sticky lg:top-24">
+            <h3 className="text-base md:text-lg font-bold text-navy mb-4">Simulateur de Tarif</h3>
             
             {options.length > 0 ? (
               <>
-                <div className="mb-5">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Choix de l'hébergement</label>
+                <div className="mb-4">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Choix de l'hébergement</label>
                   <select 
                     value={selectedHotelId} 
                     onChange={(e) => setSelectedHotelId(e.target.value)}
-                    className="w-full border border-[#EDE9E0] rounded-xl px-4 py-3 text-sm bg-[#F7F5F0] font-bold text-navy focus:outline-none focus:border-[#C9A84C]"
+                    className="w-full border border-[#EDE9E0] rounded-xl px-3 py-2.5 text-xs md:text-sm bg-[#F7F5F0] font-semibold text-navy focus:outline-none focus:border-[#C9A84C]"
                   >
                     {options.map((opt) => (
                       <option key={opt.id} value={opt.id}>{opt.hotel_name} {opt.room_type ? `(${opt.room_type})` : ''}</option>
@@ -214,13 +210,13 @@ export default function TourDetail({ tour }) {
                   </select>
                 </div>
 
-                <div className="mb-5">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Type de Chambre</label>
+                <div className="mb-4">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Type de Chambre</label>
                   <div className="grid grid-cols-3 gap-2">
                     {Object.entries(OCC_LABELS).map(([key, item]) => (
                       <button 
                         key={key} type="button" onClick={() => setOccupancy(key)}
-                        className={`p-2 rounded-xl border text-xs font-bold transition-all ${occupancy === key ? 'bg-navy text-white border-navy shadow-md' : 'bg-white border-[#EDE9E0] text-gray-500 hover:border-gray-300'}`}
+                        className={`p-2 rounded-lg border text-[10px] md:text-xs font-bold transition-all ${occupancy === key ? 'bg-navy text-white border-navy' : 'bg-white border-[#EDE9E0] text-gray-500'}`}
                       >
                         {item.label}
                       </button>
@@ -228,80 +224,86 @@ export default function TourDetail({ tour }) {
                   </div>
                 </div>
 
-                <div className="border-t border-[#F7F5F0] pt-5">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-3">Nombre de participants</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Counter label="Adultes" value={adults} min={1} onChange={setAdults} />
-                    <Counter label="Enfant (avec lit)" value={childWithBed} min={0} onChange={setChildWithBed} />
-                    <Counter label="Enfant (sans lit)" value={childNoBed} min={0} onChange={setChildNoBed} />
-                    <Counter label="Bébé (-2 ans)" value={infants} min={0} onChange={setInfants} />
-                  </div>
+                <div className="space-y-3 border-t border-[#F7F5F0] pt-4">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Nombre de participants</label>
+                  
+                  <Counter label="Adultes" value={adults} min={1} onChange={setAdults} />
+                  <Counter label="Enfant (avec lit)" value={childWithBed} min={0} onChange={setChildWithBed} />
+                  <Counter label="Enfant (sans lit)" value={childNoBed} min={0} onChange={setChildNoBed} />
+                  <Counter label="Bébé (-2 ans)" value={infants} min={0} onChange={setInfants} />
                 </div>
 
-                <div className="bg-gradient-to-br from-navy to-navy-light rounded-2xl p-5 text-center text-white mt-6 shadow-md">
-                  <div className="text-white/60 text-[10px] uppercase tracking-wider font-bold mb-1">Estimation totale</div>
-                  <div className="text-gold text-3xl font-extrabold mono">{totalPrice.toLocaleString('fr-DZ')} <span className="text-sm">DZD</span></div>
+                <div className="bg-[#FFF9EC] border border-[#C9A84C]/30 rounded-xl p-4 text-center mt-5">
+                  <div className="text-[#C9A84C] text-[10px] font-bold uppercase tracking-wider mb-0.5">Estimation totale</div>
+                  <div className="text-navy text-2xl font-extrabold mono">{totalPrice.toLocaleString('fr-DZ')} <span className="text-xs">DZD</span></div>
                 </div>
               </>
             ) : (
-              <div className="p-4 bg-amber-50 text-amber-700 text-sm rounded-xl border border-amber-100">
+              <div className="p-4 bg-amber-50 text-amber-700 text-xs rounded-xl border border-amber-100">
                 Les tarifs détaillés ne sont pas encore disponibles pour ce voyage.
               </div>
             )}
 
-            {/* Formulaire */}
+            {/* Formulaire de réservation */}
             {status === 'success' ? (
-              <div className="mt-6 bg-green/10 border border-green/20 rounded-2xl p-5 text-center">
-                <div className="w-12 h-12 rounded-full bg-green/10 text-green flex items-center justify-center text-2xl mx-auto mb-3">✓</div>
-                <h4 className="font-bold text-[#00143C] mb-1">Réservation transmise !</h4>
-                <p className="text-xs text-[#8892A4] mb-2">Référence dossier :</p>
-                <div className="inline-block px-4 py-1.5 bg-navy text-gold font-bold rounded-lg text-sm mb-3 mono">{ref}</div>
-                <p className="text-xs text-gray-400 leading-relaxed">Notre agence va étudier vos choix et vous appeler sous 24h.</p>
+              <div className="mt-6 bg-green/10 border border-green/20 rounded-xl p-4 text-center">
+                <div className="w-10 h-10 rounded-full bg-green/10 text-green flex items-center justify-center text-xl mx-auto mb-2">✓</div>
+                <h4 className="font-bold text-[#00143C] text-sm mb-1">Réservation transmise !</h4>
+                <div className="inline-block px-3 py-1 bg-navy text-gold font-bold rounded flex-shrink-0 text-xs mb-2 mono">{ref}</div>
+                <p className="text-[10px] text-[#8892A4]">Nous vous appelons sous 24h pour finaliser.</p>
               </div>
             ) : (
-              <form onSubmit={handleBook} className="mt-6 space-y-4 border-t border-[#F7F5F0] pt-6 text-left">
+              <form onSubmit={handleBook} className="mt-5 space-y-3 border-t border-[#F7F5F0] pt-5 text-left">
                 <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Nom Complet *</label>
-                  <input required value={form.customer_name} onChange={(e) => setForm({...form, customer_name: e.target.value})} className="w-full border border-[#EDE9E0] rounded-xl px-4 py-3 text-sm bg-gray-50 focus:bg-white focus:border-[#C9A84C] outline-none" />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Nom Complet *</label>
+                  <input required value={form.customer_name} onChange={(e) => setForm({...form, customer_name: e.target.value})} className="w-full border border-[#EDE9E0] rounded-xl px-3 py-2.5 text-xs bg-gray-50 focus:bg-white focus:border-[#C9A84C] outline-none" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Téléphone *</label>
-                  <input required value={form.customer_phone} onChange={(e) => setForm({...form, customer_phone: e.target.value})} className="w-full border border-[#EDE9E0] rounded-xl px-4 py-3 text-sm bg-gray-50 focus:bg-white focus:border-[#C9A84C] outline-none" />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Téléphone *</label>
+                  <input required value={form.customer_phone} onChange={(e) => setForm({...form, customer_phone: e.target.value})} className="w-full border border-[#EDE9E0] rounded-xl px-3 py-2.5 text-xs bg-gray-50 focus:bg-white focus:border-[#C9A84C] outline-none" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Adresse E-mail</label>
-                  <input type="email" value={form.customer_email} onChange={(e) => setForm({...form, customer_email: e.target.value})} className="w-full border border-[#EDE9E0] rounded-xl px-4 py-3 text-sm bg-gray-50 focus:bg-white focus:border-[#C9A84C] outline-none" />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Adresse E-mail</label>
+                  <input type="email" value={form.customer_email} onChange={(e) => setForm({...form, customer_email: e.target.value})} className="w-full border border-[#EDE9E0] rounded-xl px-3 py-2.5 text-xs bg-gray-50 focus:bg-white focus:border-[#C9A84C] outline-none" />
                 </div>
                 
-                <button disabled={status === 'sending' || options.length === 0} className="w-full py-4 rounded-full font-bold text-white bg-[#0F6E56] hover:bg-[#17A882] disabled:opacity-50 transition-colors shadow-md mt-2">
+                <button disabled={status === 'sending' || options.length === 0} className="w-full py-3 rounded-full font-bold text-white bg-[#0F6E56] hover:bg-[#17A882] disabled:opacity-50 transition-colors shadow-sm mt-2 text-sm">
                   {status === 'sending' ? 'Envoi...' : 'Demander cette formule →'}
                 </button>
               </form>
             )}
           </div>
+
         </div>
       </div>
     </MainLayout>
   );
 }
 
+// Composant interne pour les boutons d'onglets
 function TabButton({ active, onClick, label }) {
   return (
-    <button type="button" onClick={onClick} className={`px-5 py-3.5 font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all border-b-2 ${active ? 'border-[#C9A84C] text-[#00143C]' : 'border-transparent text-gray-400 hover:text-navy'}`}>
+    <button 
+      type="button" 
+      onClick={onClick} 
+      className={`px-4 md:px-5 py-3 md:py-3.5 font-bold text-[10px] md:text-xs uppercase tracking-wider whitespace-nowrap transition-all border-b-2 flex-shrink-0 ${
+        active ? 'border-[#C9A84C] text-[#00143C]' : 'border-transparent text-gray-400 hover:text-navy'
+      }`}
+    >
       {label}
     </button>
   );
 }
 
-// Le Compteur Superposé (Idéal pour mobile)
+// Compteur en ligne (ne déborde pas)
 function Counter({ label, value, min, onChange }) {
   return (
-    <div className="flex flex-col items-center justify-center bg-white rounded-xl p-3 border border-[#EDE9E0] gap-2 shadow-sm">
-      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center w-full">{label}</span>
-      <div className="flex items-center justify-center gap-3 w-full" dir="ltr">
-        <button type="button" onClick={() => onChange(Math.max(min, value - 1))} className="w-8 h-8 rounded-lg bg-[#F7F5F0] font-bold text-gray-400 hover:bg-[#EDE9E0] transition-colors text-xl flex items-center justify-center select-none shadow-sm border border-[#EDE9E0]"> − </button>
-        <span className="w-5 text-center font-bold text-[#00143C] text-sm mono">{value}</span>
-        <button type="button" onClick={() => onChange(value + 1)} className="w-8 h-8 rounded-lg bg-[#F7F5F0] font-bold text-gray-400 hover:bg-[#EDE9E0] transition-colors text-xl flex items-center justify-center select-none shadow-sm border border-[#EDE9E0]"> + </button>
+    <div className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-[#EDE9E0]">
+      <span className="text-[10px] md:text-xs font-bold text-navy truncate w-[110px]">{label}</span>
+      <div className="flex items-center gap-2" dir="ltr">
+        <button type="button" onClick={() => onChange(Math.max(min, value - 1))} className="w-7 h-7 rounded bg-gray-50 border border-gray-200 font-bold text-gray-500 hover:bg-gray-100 flex items-center justify-center text-sm select-none"> − </button>
+        <span className="w-4 text-center font-bold text-navy text-xs mono">{value}</span>
+        <button type="button" onClick={() => onChange(value + 1)} className="w-7 h-7 rounded bg-gray-50 border border-gray-200 font-bold text-gray-500 hover:bg-gray-100 flex items-center justify-center text-sm select-none"> + </button>
       </div>
     </div>
   );
