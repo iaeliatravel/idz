@@ -54,7 +54,6 @@ export default function TourDetail({ tour }) {
     setTotalPrice(calculated);
   }, [selectedHotelId, occupancy, adults, childWithBed, childNoBed, infants, options]);
 
-  // Soumission du formulaire
   async function handleBook(e) {
     e.preventDefault();
     if (!selectedDepartureId) return alert("Veuillez sélectionner une date de départ.");
@@ -62,8 +61,17 @@ export default function TourDetail({ tour }) {
     setStatus('sending');
     try {
       const recaptcha_token = await getToken('tour_book');
+      const hotel = options.find(h => String(h.id) === String(selectedHotelId)); // On récupère l'hôtel
+      
       const { data } = await axios.post('/api/tours/book', {
-        tour_departure_id: selectedDepartureId, // Envoie l'ID du départ choisi !
+        tour_departure_id: selectedDepartureId,
+        hotel_name: hotel?.hotel_name || '',
+        room_type: OCC_LABELS[occupancy]?.label || occupancy,
+        nb_adults: adults,
+        nb_children_bed: childWithBed,
+        nb_children_nobed: childNoBed,
+        nb_infants: infants,
+        total_price_dzd: totalPrice,
         nb_travelers: adults + childWithBed + childNoBed + infants,
         ...form,
         recaptcha_token

@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TourBooking extends Model
 {
     protected $fillable = [
-        'reference', 'tour_departure_id', 'customer_name', 'customer_phone', 
-        'customer_email', 'nb_travelers', 'status', 'admin_notes'
+        'reference', 'tour_departure_id', 'hotel_name', 'room_type',
+        'customer_name', 'customer_phone', 'customer_email', 
+        'nb_adults', 'nb_children_bed', 'nb_children_nobed', 'nb_infants',
+        'total_price_dzd', 'nb_travelers', 'status', 'admin_notes'
     ];
 
     public function departure(): BelongsTo

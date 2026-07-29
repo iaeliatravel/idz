@@ -99,6 +99,30 @@ function BookingDetailModal({ booking, onClose, onSaved }) {
         </div>
       </div>
 
+      {/* NOUVEAU BLOC : Détails de facturation */}
+      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-4 grid grid-cols-2 gap-4 text-sm">
+        <div>
+           <strong className="text-[10px] text-blue-800 uppercase block mb-1">Hébergement Choisi</strong>
+           <span className="font-bold text-navy">{booking.hotel_name || 'Non précisé'}</span> <br/>
+           <span className="text-gray-500 text-xs">Chambre : {booking.room_type || '—'}</span>
+        </div>
+        <div>
+           <strong className="text-[10px] text-blue-800 uppercase block mb-1">Total affiché au client</strong>
+           <span className="text-xl font-bold text-blue-900 mono">
+              {booking.total_price_dzd ? `${Number(booking.total_price_dzd).toLocaleString('fr-DZ')} DZD` : '—'}
+           </span>
+        </div>
+        <div className="col-span-2 border-t border-blue-200/50 pt-3">
+           <strong className="text-[10px] text-blue-800 uppercase block mb-1">Répartition des voyageurs ({booking.nb_travelers} total)</strong>
+           <div className="flex gap-4 text-gray-700">
+              <span>🧑 {booking.nb_adults} Adultes</span>
+              <span>👦 {booking.nb_children_bed} Enf (avec lit)</span>
+              <span>🧒 {booking.nb_children_nobed} Enf (sans lit)</span>
+              <span>👶 {booking.nb_infants} Bébés</span>
+           </div>
+        </div>
+      </div>
+
       <form onSubmit={handleSave} className="border-t pt-4">
         <FormField label="Statut">
           <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputClass}>

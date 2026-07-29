@@ -56,21 +56,16 @@ Route::get('/voyages', function () {
     ]);
 })->name('tours.index');
 
-Route::get('/voyages/{slug}', function ($slug) {
-    $tour = \App\Models\Tour::with([
-        'hotelOptions', 
-        'departures' => function($query) {
-            $query->where('is_active', true)->orderBy('departure_date');
-        }
-    ])
-    ->where('slug', $slug)
-    ->where('is_active', true)
-    ->firstOrFail();
+Route::get('/voyages', function () {
+    // On charge les départs associés pour pouvoir afficher les dates
+    $tours = \App\Models\Tour::with(['departures' => function($q) {
+        $q->where('is_active', true)->orderBy('departure_date');
+    }])->where('is_active', true)->orderByDesc('id')->get();
     
-    return Inertia::render('TourDetail', [
-        'tour' => $tour
+    return Inertia::render('Tours', [
+        'tours' => $tours
     ]);
-})->name('tours.show');
+})->name('tours.index');
 
 /*
 |--------------------------------------------------------------------------
