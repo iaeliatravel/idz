@@ -18,6 +18,7 @@ export default function Maritime() {
 
   const [status, setStatus] = useState('idle');
   const [ref, setRef] = useState(null);
+  const [error, setError] = useState(null); // <-- CORRECTION : Déclaration de l'état d'erreur
   const { getToken } = useRecaptcha();
 
   useEffect(() => {
@@ -30,6 +31,7 @@ export default function Maritime() {
   async function handleSubmit(e) {
     e.preventDefault();
     setStatus('sending');
+    setError(null); // On réinitialise l'erreur
     try {
       const token = await getToken('maritime_book');
       const payload = {
@@ -48,7 +50,8 @@ export default function Maritime() {
       const { data } = await axios.post('/api/maritime/book', payload);
       setRef(data.reference);
       setStatus('success');
-    } catch {
+    } catch (err) {
+      setError(err.response?.data?.error || "Une erreur est survenue lors de l'envoi de la demande. Merci de réessayer.");
       setStatus('error');
     }
   }
@@ -123,7 +126,7 @@ export default function Maritime() {
                     <select required value={selectedRouteId} onChange={(e) => setSelectedRouteId(e.target.value)} className="w-full border rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white outline-none">
                       <option value="">-- Sélectionner le trajet --</option>
                       {routes.map(r => (
-                        <option key={r.id} value={r.id}>{r.departure_port} ➔ {r.arrival_port} ({r.is_round_trip ? 'Aller-Retour' : 'Aller simple'})</option>
+                        <option key={r.id} value={r.id}>{r.departure_port} ↔ {r.arrival_port}</option>
                       ))}
                     </select>
                   </div>
