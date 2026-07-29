@@ -133,7 +133,8 @@ private function validateTour(Request $request): array
     // ---- BOOKINGS ----
     public function bookingsIndex()
     {
-        return response()->json(TourBooking::with('tour')->orderByDesc('created_at')->get());
+        // On charge la relation 'departure' et le 'tour' parent
+        return response()->json(TourBooking::with('departure.tour')->orderByDesc('created_at')->get());
     }
 
     public function bookingsUpdate(Request $request, TourBooking $booking)

@@ -37,7 +37,10 @@ export default function TourBookings() {
               <tr key={b.id} className="border-t hover:bg-gray-50">
                 <td className="p-3 font-bold">{b.reference}</td>
                 <td className="p-3">{b.customer_name}<br /><small className="text-gray-400">{b.customer_phone}</small></td>
-                <td className="p-3"><strong>{b.tour?.title_fr || '—'}</strong><br /><small className="text-gray-400">{b.tour?.destination || ''}</small></td>
+                <td className="p-3">
+                  <strong>{b.departure?.tour?.title_fr || '—'}</strong><br />
+                  <small className="text-gray-400">Départ du : {formatDate(b.departure?.departure_date)}</small>
+                </td>
                 <td className="p-3 font-semibold">{b.nb_travelers} pers.</td>
                 <td className="p-3"><Badge color={STATUS_COLORS[b.status]}>{STATUS_LABELS[b.status]}</Badge></td>
                 <td className="p-3">{formatDate(b.created_at)}</td>
