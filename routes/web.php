@@ -15,12 +15,13 @@ use App\Http\Controllers\Admin\TourAdminController;
 use App\Http\Controllers\Admin\QuoteAdminController;
 use App\Http\Controllers\Api\TourPublicController;
 use App\Http\Controllers\Api\QuotePublicController;
-
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-
+use App\Http\Controllers\Api\MaritimePublicController;
 use App\Http\Controllers\Api\EvisaPaymentController;
 use App\Http\Controllers\Api\SlickPayCallbackController;
+use App\Models\MaritimeBooking;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,51 +30,25 @@ use App\Http\Controllers\Api\SlickPayCallbackController;
 */
 
 Route::get('/', function () {
-
     if (request()->getHost() === 'evisa.aeliatravelagency.dz') {
         return Inertia::render('Evisa');
     }
-
     return Inertia::render('Home');
-
 })->name('home');
 
-Route::get('/evisa', fn () => Inertia::render('Evisa'))
-    ->name('evisa');
-
-Route::get('/omra', fn () => Inertia::render('Omra'))
-    ->name('omra');
-
-Route::get('/devis', fn () => Inertia::render('Quote'))
-    ->name('quote');
-
-Route::get('/maritime', fn () => Inertia::render('Maritime'))
-    ->name('maritime.index');
-
+Route::get('/evisa', fn () => Inertia::render('Evisa'))->name('evisa');
+Route::get('/omra', fn () => Inertia::render('Omra'))->name('omra');
+Route::get('/devis', fn () => Inertia::render('Quote'))->name('quote');
+Route::get('/maritime', fn () => Inertia::render('Maritime'))->name('maritime.index');
 
 Route::get('/voyages', function () {
-    // On charge les voyages
-    $tours = \App\Models\Tour::where('is_active', true)->orderBy('departure_date')->get();
-    
-    return Inertia::render('Tours', [
-        'tours' => $tours
-    ]);
-})->name('tours.index');
-
-Route::get('/voyages', function () {
-    // On charge les voyages AVEC leurs départs
     $tours = \App\Models\Tour::with(['departures' => function($q) {
         $q->where('is_active', true)->orderBy('departure_date');
     }])->where('is_active', true)->orderByDesc('id')->get();
-    
-    return Inertia::render('Tours', [
-        'tours' => $tours
-    ]);
+    return Inertia::render('Tours', ['tours' => $tours]);
 })->name('tours.index');
 
-
 Route::get('/voyages/{slug}', function ($slug) {
-    // On charge le voyage AVEC les hôtels ET les départs
     $tour = \App\Models\Tour::with([
         'hotelOptions', 
         'departures' => function($query) {
@@ -82,17 +57,13 @@ Route::get('/voyages/{slug}', function ($slug) {
     ])
     ->where('slug', $slug)
     ->where('is_active', true)
-    ->firstOrFail(); // Si ça donne 404, c'est que cette requête échouait car les relations étaient mal écrites
-    
-    return Inertia::render('TourDetail', [
-        'tour' => $tour
-    ]);
-})->name('tours.show');
+    ->firstOrFail();
+    return Inertia::render('TourDetail', ['tour' => $tour]);
+})->name('tours.show');    
 
 /*
 |--------------------------------------------------------------------------
-|  PAGE ADMIN (SPA React monté une seule fois, le routing interne
-|  est géré côté client par React Router)
+| PAGE ADMIN (SPA React)
 |--------------------------------------------------------------------------
 */
 Route::get('/admin/{any?}', fn () => Inertia::render('Admin/App'))
@@ -101,28 +72,10 @@ Route::get('/admin/{any?}', fn () => Inertia::render('Admin/App'))
 
 /*
 |--------------------------------------------------------------------------
-|  API — CONTENU PUBLIC (lecture)
+| API PUBLIQUE (Lecture & Inscriptions)
 |--------------------------------------------------------------------------
 */
 Route::prefix('api')->group(function () {
-
-    Route::get('/maritime/data', [App\Http\Controllers\Api\MaritimePublicController::class, 'data']);
-    Route::post('/maritime/book', [App\Http\Controllers\Api\MaritimePublicController::class, 'store'])->middleware('throttle:5,1');
-
-    // Admin Maritime (Protégé)
-    Route::middleware('admin.auth')->prefix('admin')->group(function () {
-        Route::get('/maritime/bookings', function () {
-            return response()->json(App\Models\MaritimeBooking::with('route.company')->orderByDesc('created_at')->get());
-        });
-        Route::put('/maritime/bookings/{booking}', function (Request $request, App\Models\MaritimeBooking $booking) {
-            $data = $request->validate(['status' => 'required', 'admin_notes' => 'nullable']);
-            $booking->update($data);
-            return response()->json(['success' => true]);
-        });
-        Route::delete('/maritime/bookings/{booking}', function (App\Models\MaritimeBooking $booking) {
-            $booking->delete();
-            return response()->json(['success' => true]);
-        });
 
     Route::post('/evisa/options/{id}/view', function ($id) {
         \App\Models\EvisaOption::where('id', $id)->increment('views');
@@ -140,34 +93,33 @@ Route::prefix('api')->group(function () {
     Route::get('/content/{page}', [SiteContentPublicController::class, 'show']);
     Route::get('/config', [SiteConfigController::class, 'show']);
 
-    // ---- eVisa public ----
+    // eVisa public
     Route::get('/evisa/countries', [EvisaPublicController::class, 'countries']);
     Route::get('/evisa/countries/{slug}', [EvisaPublicController::class, 'country']);
-    Route::post('/evisa/apply', [EvisaPublicController::class, 'apply'])
-        ->middleware('throttle:5,1');
+    Route::post('/evisa/apply', [EvisaPublicController::class, 'apply'])->middleware('throttle:5,1');
 
-    // ---- Omra public ----
+    // Omra public
     Route::get('/omra/departures', [OmraPublicController::class, 'departures']);
     Route::get('/omra/departures/{id}', [OmraPublicController::class, 'show']);
     Route::get('/omra/hotels', [OmraPublicController::class, 'hotels']);
-    Route::post('/omra/simulate', [OmraPublicController::class, 'simulate'])
-        ->middleware('throttle:30,1');
-    Route::post('/omra/prebook', [OmraPublicController::class, 'prebook'])
-        ->middleware('throttle:5,1');
+    Route::post('/omra/simulate', [OmraPublicController::class, 'simulate'])->middleware('throttle:30,1');
+    Route::post('/omra/prebook', [OmraPublicController::class, 'prebook'])->middleware('throttle:5,1');
 
-    // ---- Contact ----
-    Route::post('/contact', [ContactController::class, 'store'])
-        ->middleware('throttle:5,1');
+    // Maritime public
+    Route::get('/maritime/data', [MaritimePublicController::class, 'data']);
+    Route::post('/maritime/book', [MaritimePublicController::class, 'store'])->middleware('throttle:5,1');
 
-    // ---- Auth admin ----
-    Route::post('/admin/login', [AdminAuthController::class, 'login'])
-        ->middleware('throttle:10,1');
+    // Contact
+    Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:5,1');
+
+    // Auth admin
+    Route::post('/admin/login', [AdminAuthController::class, 'login'])->middleware('throttle:10,1');
     Route::post('/admin/logout', [AdminAuthController::class, 'logout']);
     Route::get('/admin/me', [AdminAuthController::class, 'me'])->middleware('admin.auth');
     
     /*
     |--------------------------------------------------------------------
-    |  API ADMIN (protégée)
+    |  API ADMIN (Protégée)
     |--------------------------------------------------------------------
     */
     Route::middleware('admin.auth')->prefix('admin')->group(function () {
@@ -194,11 +146,8 @@ Route::prefix('api')->group(function () {
         Route::get('/content/{page}', [SiteContentAdminController::class, 'index']);
         Route::put('/content/{page}/{sectionKey}', [SiteContentAdminController::class, 'update']);
         Route::delete('/content/{page}/{sectionKey}', [SiteContentAdminController::class, 'destroy']);
-        Route::get('/media', [SiteContentAdminController::class, 'mediaIndex']);
-        Route::post('/media', [SiteContentAdminController::class, 'mediaStore']);
-        Route::delete('/media/{media}', [SiteContentAdminController::class, 'mediaDestroy']);
 
-        // Logos (3 versions : couleur, blanc, noir & blanc)
+        // Logos
         Route::get('/logos', [LogoAdminController::class, 'index']);
         Route::post('/logos/{variant}', [LogoAdminController::class, 'store']);
         Route::delete('/logos/{variant}', [LogoAdminController::class, 'destroy']);
@@ -223,12 +172,10 @@ Route::prefix('api')->group(function () {
 
         Route::get('/evisa/applications', [EvisaAdminController::class, 'applicationsIndex']);
         Route::put('/evisa/applications/{application}', [EvisaAdminController::class, 'applicationsUpdate']);
-
         Route::delete('/evisa/applications/{application}', [EvisaAdminController::class, 'applicationsDestroy']);
 
         // Omra admin
         Route::get('/omra/kpis', [OmraAdminController::class, 'kpis']);
-
         Route::get('/omra/partners', [OmraAdminController::class, 'partnersIndex']);
         Route::post('/omra/partners', [OmraAdminController::class, 'partnersStore']);
         Route::put('/omra/partners/{partner}', [OmraAdminController::class, 'partnersUpdate']);
@@ -236,7 +183,7 @@ Route::prefix('api')->group(function () {
 
         Route::get('/omra/airlines', [OmraAdminController::class, 'airlinesIndex']);
         Route::post('/omra/airlines', [OmraAdminController::class, 'airlinesStore']);
-        Route::post('/omra/airlines/{airline}', [OmraAdminController::class, 'airlinesUpdate']); // POST + _method=PUT (upload fichier)
+        Route::post('/omra/airlines/{airline}', [OmraAdminController::class, 'airlinesUpdate']);
         Route::delete('/omra/airlines/{airline}', [OmraAdminController::class, 'airlinesDestroy']);
 
         Route::get('/omra/hotels', [OmraAdminController::class, 'hotelsIndex']);
@@ -250,15 +197,27 @@ Route::prefix('api')->group(function () {
         Route::post('/omra/departures', [OmraAdminController::class, 'departuresStore']);
         Route::put('/omra/departures/{departure}', [OmraAdminController::class, 'departuresUpdate']);
         Route::delete('/omra/departures/{departure}', [OmraAdminController::class, 'departuresDestroy']);
+        Route::post('/omra/departures/{departure}/duplicate', [OmraAdminController::class, 'duplicate']);
 
         Route::get('/omra/prebookings', [OmraAdminController::class, 'prebookingsIndex']);
         Route::put('/omra/prebookings/{prebooking}', [OmraAdminController::class, 'prebookingsUpdate']);
+        Route::delete('/omra/prebookings/{prebooking}', [OmraAdminController::class, 'prebookingsDestroy']);
 
         Route::get('/omra/simulations', [OmraAdminController::class, 'simulationsIndex']);
-        
-        Route::post('/omra/departures/{departure}/duplicate', [OmraAdminController::class, 'duplicate']);
 
-        Route::delete('/omra/prebookings/{prebooking}', [OmraAdminController::class, 'prebookingsDestroy']);
+        // Maritime admin
+        Route::get('/maritime/bookings', function () {
+            return response()->json(MaritimeBooking::with('route.company')->orderByDesc('created_at')->get());
+        });
+        Route::put('/maritime/bookings/{booking}', function (Request $request, MaritimeBooking $booking) {
+            $data = $request->validate(['status' => 'required', 'admin_notes' => 'nullable']);
+            $booking->update($data);
+            return response()->json(['success' => true]);
+        });
+        Route::delete('/maritime/bookings/{booking}', function (MaritimeBooking $booking) {
+            $booking->delete();
+            return response()->json(['success' => true]);
+        });
 
         // Général
         Route::get('/messages', [GeneralAdminController::class, 'messagesIndex']);
@@ -269,8 +228,7 @@ Route::prefix('api')->group(function () {
 });
 
 // Page de retour après paiement SATIM
-Route::get('/evisa/payment/result', [EvisaPaymentController::class, 'result'])
-    ->name('evisa.payment.result');
+Route::get('/evisa/payment/result', [EvisaPaymentController::class, 'result'])->name('evisa.payment.result');
 
 Route::prefix('api')->group(function () {
     // Initiation paiement
