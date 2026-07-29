@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Tour extends Model
 {
     protected $fillable = [
-        'title_fr', 'title_ar', 'slug', 'destination', 'departure_date', 'return_date',
+        'title_fr', 'title_ar', 'slug', 'destination',
         'price_dzd', 'price_child_dzd', // <-- AJOUTÉS ICI
-        'flights', 'program', 'included_pack', 'excluded_pack', 'remarks',
-        'cover_image_url', 'seats_total', 'seats_remaining', 'is_active'
+        'program', 'included_pack', 'excluded_pack', 'remarks',
+        'cover_image_url', 'is_active'
     ];
 
     protected $casts = [
@@ -23,6 +23,11 @@ class Tour extends Model
         'included_pack' => 'array',   // Cast JSON automatique en tableau PHP
         'excluded_pack' => 'array',   // Cast JSON automatique en tableau PHP
     ];
+
+    public function departures(): HasMany
+    {
+        return $this->hasMany(TourDeparture::class)->orderBy('departure_date');
+    }
 
     public function hotelOptions(): HasMany
     {

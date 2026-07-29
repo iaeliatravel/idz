@@ -9,6 +9,7 @@ use App\Models\EvisaOption;
 use App\Models\EvisaRequiredDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage; 
 
 class EvisaAdminController extends Controller
 {
@@ -295,11 +296,26 @@ class EvisaAdminController extends Controller
     public function applicationsDestroy(\App\Models\EvisaApplication $application)
     {
         \Illuminate\Support\Facades\DB::transaction(function () use ($application) {
+            // 1. Récupérer les fichiers avant suppression
+            $files = \App\Models\EvisaApplicationFile::where('application_id', $application->id)->get();
+            
+            // 2. Supprimer les fichiers physiques du disque
+            foreach ($files as $file) {
+                // str_replace permet d'enlever '/storage/' pour avoir le chemin relatif correct
+                $path = str_replace('/storage/', '', $file->file_path);
+                Storage::disk('public')->delete($path);
+            }
+            
+            // 3. Supprimer le dossier complet du client s'il est vide
+            Storage::disk('public')->deleteDirectory("evisa/{$application->id}");
+
+            // 4. Supprimer de la base de données
             \App\Models\EvisaApplicationFile::where('application_id', $application->id)->delete();
             \App\Models\EvisaApplicationTraveler::where('application_id', $application->id)->delete();
             \App\Models\EvisaPayment::where('application_id', $application->id)->delete();
             $application->delete();
         });
+
         return response()->json(['success' => true]);
     }
     

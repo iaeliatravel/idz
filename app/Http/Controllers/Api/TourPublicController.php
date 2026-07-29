@@ -13,7 +13,7 @@ class TourPublicController extends Controller
 {
     public function index()
     {
-        return response()->json(Tour::where('is_active', true)->orderBy('departure_date')->get());
+        return response()->json(Tour::with(['departures', 'hotelOptions'])->where('is_active', true)->orderBy('departure_date')->get());
     }
 
     public function show(string $slug)
@@ -30,7 +30,7 @@ class TourPublicController extends Controller
     public function book(Request $request)
     {
         $data = $request->validate([
-            'tour_id' => ['required', 'integer', 'exists:tours,id'],
+            'tour_departure_id' => ['required', 'integer', 'exists:tour_departures,id'], // <-- MODIFIÉ ICI
             'customer_name' => ['required', 'string', 'max:160'],
             'customer_phone' => ['required', 'string', 'max:40'],
             'customer_email' => ['nullable', 'email', 'max:180'],
@@ -44,7 +44,7 @@ class TourPublicController extends Controller
 
         $booking = TourBooking::create([
             'reference' => RefGenerator::tourBooking(),
-            'tour_id' => $data['tour_id'],
+            'tour_departure_id' => $data['tour_departure_id'], // <-- MODIFIÉ ICI
             'customer_name' => $data['customer_name'],
             'customer_phone' => $data['customer_phone'],
             'customer_email' => $data['customer_email'] ?? null,

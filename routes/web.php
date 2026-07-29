@@ -48,17 +48,29 @@ Route::get('/devis', fn () => Inertia::render('Quote'))
     ->name('quote');
 
 Route::get('/voyages', function () {
+    // On charge les voyages
+    $tours = \App\Models\Tour::where('is_active', true)->orderBy('departure_date')->get();
+    
     return Inertia::render('Tours', [
-        'tours' => \App\Models\Tour::where('is_active', true)->orderBy('departure_date')->get()
+        'tours' => $tours
     ]);
 })->name('tours.index');
 
 Route::get('/voyages/{slug}', function ($slug) {
-    $tour = \App\Models\Tour::where('slug', $slug)->where('is_active', true)->firstOrFail();
+    $tour = \App\Models\Tour::with([
+        'hotelOptions', 
+        'departures' => function($query) {
+            $query->where('is_active', true)->orderBy('departure_date');
+        }
+    ])
+    ->where('slug', $slug)
+    ->where('is_active', true)
+    ->firstOrFail();
+    
     return Inertia::render('TourDetail', [
         'tour' => $tour
     ]);
-})->name('tours.show');    
+})->name('tours.show');
 
 /*
 |--------------------------------------------------------------------------
