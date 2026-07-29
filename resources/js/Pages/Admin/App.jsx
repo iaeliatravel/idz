@@ -27,6 +27,8 @@ import ToursManager from './Pages/ToursManager';
 import TourBookings from './Pages/TourBookings';
 import QuotesManager from './Pages/QuotesManager';
 
+import MaritimeBookings from './Pages/MaritimeBookings';
+
 export { Spinner };
 
 export default function App() {
@@ -95,6 +97,8 @@ function Shell({ admin, setAdmin }) {
             <Route path="/admin/tours" element={<ToursManager />} />
             <Route path="/admin/tour-bookings" element={<TourBookings />} />
             <Route path="/admin/quotes" element={<QuotesManager />} />
+
+            <Route path="/admin/maritime-bookings" element={<MaritimeBookings />} />
 
             <Route path="/admin/content/:page" element={<ContentEditor />} />
             <Route path="/admin/logos" element={<LogosManager />} />

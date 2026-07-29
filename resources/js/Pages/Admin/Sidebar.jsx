@@ -22,7 +22,8 @@ const LINKS = [
     { to: '/admin/tour-bookings', label: 'Réservations', icon: '📝' },
   ]},
   { section: 'Demandes clients', items: [
-    { to: '/admin/quotes', label: 'Demandes de Devis', icon: '💼' },
+    { to: '/admin/quotes', label: 'Demandes de Devis', icon: '💼' },    
+    { to: '/admin/maritime-bookings', label: 'Billetterie Maritime', icon: '🚢' },
     { to: '/admin/messages', label: 'Messages contact', icon: '✉' }, // On le laisse ici (plus logique)
   ]},
   { section: 'Contenu du site', items: [
