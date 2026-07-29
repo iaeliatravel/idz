@@ -57,7 +57,7 @@ Route::get('/voyages', function () {
 })->name('tours.index');
 
 Route::get('/voyages', function () {
-    // On charge les départs associés pour pouvoir afficher les dates
+    // On charge les voyages AVEC leurs départs
     $tours = \App\Models\Tour::with(['departures' => function($q) {
         $q->where('is_active', true)->orderBy('departure_date');
     }])->where('is_active', true)->orderByDesc('id')->get();
@@ -66,6 +66,24 @@ Route::get('/voyages', function () {
         'tours' => $tours
     ]);
 })->name('tours.index');
+
+
+Route::get('/voyages/{slug}', function ($slug) {
+    // On charge le voyage AVEC les hôtels ET les départs
+    $tour = \App\Models\Tour::with([
+        'hotelOptions', 
+        'departures' => function($query) {
+            $query->where('is_active', true)->orderBy('departure_date');
+        }
+    ])
+    ->where('slug', $slug)
+    ->where('is_active', true)
+    ->firstOrFail(); // Si ça donne 404, c'est que cette requête échouait car les relations étaient mal écrites
+    
+    return Inertia::render('TourDetail', [
+        'tour' => $tour
+    ]);
+})->name('tours.show');
 
 /*
 |--------------------------------------------------------------------------

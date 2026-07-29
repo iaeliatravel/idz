@@ -89,6 +89,18 @@ export default function TourDetail({ tour }) {
 
   const fallbackImage = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80&auto=format&fit=crop';
 
+  const safeFormatDateShort = (dateStr) => {
+    if (!dateStr) return '—';
+    try {
+      const normalized = dateStr.includes('T') ? dateStr : dateStr.replace(/-/g, '/');
+      const d = new Date(normalized);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('fr-DZ', { day: '2-digit', month: 'short' });
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
     <MainLayout alwaysSolid>
       <Head>
@@ -119,13 +131,13 @@ export default function TourDetail({ tour }) {
                 <div className="p-4 text-center">
                   <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Départ</div>
                   <div className="font-bold text-navy text-sm">
-                    {activeDeparture.departure_date ? new Date(activeDeparture.departure_date).toLocaleDateString('fr-DZ', { day: '2-digit', month: 'short' }) : '—'}
+                    {safeFormatDateShort(activeDeparture.departure_date)}
                   </div>
                 </div>
                 <div className="p-4 text-center">
                   <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Retour</div>
                   <div className="font-bold text-navy text-sm">
-                    {activeDeparture.return_date ? new Date(activeDeparture.return_date).toLocaleDateString('fr-DZ', { day: '2-digit', month: 'short' }) : '—'}
+                    {safeFormatDateShort(activeDeparture.return_date)}
                   </div>
                 </div>
                 <div className="p-4 text-center col-span-2 md:col-span-2 bg-[#FFF9EC]">
