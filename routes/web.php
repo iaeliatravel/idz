@@ -47,6 +47,10 @@ Route::get('/omra', fn () => Inertia::render('Omra'))
 Route::get('/devis', fn () => Inertia::render('Quote'))
     ->name('quote');
 
+Route::get('/maritime', fn () => Inertia::render('Maritime'))
+    ->name('maritime.index');
+
+
 Route::get('/voyages', function () {
     // On charge les voyages
     $tours = \App\Models\Tour::where('is_active', true)->orderBy('departure_date')->get();
@@ -284,29 +288,4 @@ Route::prefix('api')->group(function () {
     Route::post('/evisa/payment/callback', [SlickPayCallbackController::class, 'handle'])
         ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
         ->name('evisa.payment.callback');
-});
-
-// Page publique Maritime
-Route::get('/maritime', fn () => Inertia::render('Maritime'))->name('maritime.index');
-
-// API Maritime
-Route::prefix('api')->group(function () {
-    Route::get('/maritime/data', [App\Http\Controllers\Api\MaritimePublicController::class, 'data']);
-    Route::post('/maritime/book', [App\Http\Controllers\Api\MaritimePublicController::class, 'store'])->middleware('throttle:5,1');
-
-    // Admin Maritime (Protégé)
-    Route::middleware('admin.auth')->prefix('admin')->group(function () {
-        Route::get('/maritime/bookings', function () {
-            return response()->json(App\Models\MaritimeBooking::with('route.company')->orderByDesc('created_at')->get());
-        });
-        Route::put('/maritime/bookings/{booking}', function (Request $request, App\Models\MaritimeBooking $booking) {
-            $data = $request->validate(['status' => 'required', 'admin_notes' => 'nullable']);
-            $booking->update($data);
-            return response()->json(['success' => true]);
-        });
-        Route::delete('/maritime/bookings/{booking}', function (App\Models\MaritimeBooking $booking) {
-            $booking->delete();
-            return response()->json(['success' => true]);
-        });
-    });
 });
