@@ -59,34 +59,43 @@ export default function Maritime() {
   if (status === 'success') {
     return (
       <MainLayout alwaysSolid>
-        <Head title="Demande de traversée enregistrée — UrPlanet" />
+        <Head title="Demande de traversée enregistrée — Aelia Travel" />
         <div className="min-h-screen bg-[#F7F5F0] flex items-center justify-center px-4 pt-28 pb-16">
-          <div className="bg-white rounded-[28px] max-w-[550px] w-full p-8 border border-[#EDE9E0] shadow-soft text-center">
-            <div className="w-16 h-16 rounded-full bg-[#0F6E56]/10 text-[#0F6E56] text-3xl flex items-center justify-center mx-auto mb-4">🚢</div>
-            <h2 className="text-[#00143C] mb-2 font-bold">Demande de billet reçue !</h2>
-            <p className="text-[#8892A4] text-xs mb-3">Référence de votre dossier de réservation :</p>
-            <div className="inline-block px-8 py-3 rounded-2xl bg-navy text-gold font-bold text-lg mono mb-5 shadow-sm">{ref}</div>
+          <div className="bg-white rounded-[28px] max-w-[520px] w-full p-8 md:p-10 border border-[#EDE9E0] shadow-soft text-center">
             
-            <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-              Un conseiller va vérifier les disponibilités et vous contacter sous peu. Vous pourrez effectuer votre règlement via l'un de nos canaux.
-            </p>
-
-            {/* Méthodes de paiement de la page 4 du PDF */}
-            <div className="bg-[#F7F5F0] rounded-2xl p-4 text-left text-xs text-gray-500 mb-6 space-y-2 border">
-              <strong className="text-navy uppercase text-[10px] tracking-wider block mb-2">💳 Méthodes de paiement acceptées :</strong>
-              <div className="grid grid-cols-2 gap-2 font-semibold">
-                <div>• CCP</div>
-                <div>• BARIDIMOB</div>
-                <div>• Société Générale</div>
-                <div>• BDL</div>
-                <div className="col-span-2">• CPA (Crédit Populaire d'Algérie)</div>
-              </div>
-              <p className="text-[10px] text-gray-400 mt-2 border-t pt-2">
-                Envoyez votre reçu de paiement à : <strong className="text-navy">paiement@urplanethotels.com</strong>
-              </p>
+            {/* Icône de succès animée */}
+            <div className="relative w-20 h-20 mx-auto mb-6">
+              <div className="absolute inset-0 rounded-full bg-[#0F6E56]/10 animate-ping" />
+              <div className="relative w-20 h-20 rounded-full bg-[#0F6E56]/15 flex items-center justify-center text-[#0F6E56] text-3xl">⚓</div>
             </div>
 
-            <Link href="/" className="w-full py-3 bg-navy text-white rounded-full font-bold block text-sm">Retour à l'accueil</Link>
+            <h2 className="text-[#00143C] mb-2 font-bold">Demande enregistrée !</h2>
+            <p className="text-[#8892A4] text-xs mb-4">Référence de votre dossier de réservation :</p>
+            
+            {/* Badge de référence */}
+            <div className="inline-block px-8 py-3 rounded-2xl bg-[#00143C] text-[#C9A84C] text-lg font-bold mono mb-6 shadow-md tracking-wider">
+              {ref}
+            </div>
+            
+            {/* Texte amélioré dans un encadré chaleureux */}
+            <div className="bg-[#F7F5F0] rounded-2xl p-6 text-left text-sm text-gray-600 mb-8 border border-[#EDE9E0] space-y-3">
+              <div className="flex items-start gap-3">
+                <span className="text-lg mt-0.5">📅</span>
+                <p className="leading-relaxed">
+                  Un conseiller d'<strong>Aelia Travel</strong> va vous contacter personnellement sous <strong>24 heures</strong> pour valider la disponibilité des places ainsi que les dates de votre traversée.
+                </p>
+              </div>
+              <div className="flex items-start gap-3 border-t border-gray-200/50 pt-3">
+                <span className="text-lg mt-0.5">💼</span>
+                <p className="leading-relaxed">
+                  Ensemble, nous planifierons un <strong>rendez-vous</strong> pour finaliser votre dossier et procéder au règlement de votre réservation en agence ou à distance.
+                </p>
+              </div>
+            </div>
+
+            <Link href="/" className="w-full py-4 rounded-full font-semibold text-white bg-gradient-to-br from-[#00143C] to-[#0F2D5C] hover:shadow-[0_8px_32px_rgba(0,20,60,0.3)] transition-all duration-300 text-center block text-sm">
+              Retour à l'accueil
+            </Link>
           </div>
         </div>
       </MainLayout>
