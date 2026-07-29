@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../../Utils/adminApi';
-import { Toolbar, Badge, EmptyState, IconButton, Modal, FormField, inputClass, formatDZD, formatDate, Spinner } from '../Shared/UI';
+import { Toolbar, Badge, EmptyState, IconButton, Modal, FormField, inputClass, formatDate, Spinner } from '../Shared/UI';
 
 export default function ToursManager() {
   const [tours, setTours] = useState(null);
@@ -40,7 +40,7 @@ export default function ToursManager() {
           <thead className="bg-gray-50 text-left text-gray-500 text-xs uppercase">
             <tr>
               <th className="p-3">Image</th><th className="p-3">Titre (FR)</th><th className="p-3">Destination</th>
-              <th className="p-3">Date Départ</th><th className="p-3">Formules</th><th className="p-3">Statut</th><th className="p-3"></th>
+              <th className="p-3">Départs</th><th className="p-3">Hôtels</th><th className="p-3">Statut</th><th className="p-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -51,8 +51,8 @@ export default function ToursManager() {
                 </td>
                 <td className="p-3"><strong>{t.title_fr}</strong></td>
                 <td className="p-3">{t.destination}</td>
-                <td className="p-3">{formatDate(t.departure_date)}</td>
-                <td className="p-3 font-semibold text-xs text-gray-400">{t.hotel_options?.length || 0} hôtel(s) lié(s)</td>
+                <td className="p-3 font-semibold text-xs text-blue-600">{t.departures?.length || 0} date(s)</td>
+                <td className="p-3 font-semibold text-xs text-gray-500">{t.hotel_options?.length || 0} formule(s)</td>
                 <td className="p-3">{t.is_active ? <Badge color="green">Actif</Badge> : <Badge color="red">Inactif</Badge>}</td>
                 <td className="p-3">
                   <div className="flex gap-1">
@@ -76,15 +76,24 @@ export default function ToursManager() {
 
 function TourModal({ tour, onClose, onSaved }) {
   const isNew = !tour.id;
-  const [modalTab, setModalTab] = useState('general'); // general | flights | program | hotels | inclusions
+  const [modalTab, setModalTab] = useState('general'); // general | departures | program | hotels | inclusions
 
   const [form, setForm] = useState({
     title_fr: tour.title_fr || '', title_ar: tour.title_ar || '', destination: tour.destination || '', 
-    departure_date: tour.departure_date?.slice(0, 10) || '', return_date: tour.return_date?.slice(0, 10) || '', 
-    price_dzd: tour.price_dzd || 0, remarks: tour.remarks || '', seats_total: tour.seats_total || '',
-    seats_remaining: tour.seats_remaining || '', is_active: tour.is_active ?? true,
-    flights: tour.flights || [], program: tour.program || [], 
-    included_pack: tour.included_pack || [], excluded_pack: tour.excluded_pack || [],
+    price_dzd: tour.price_dzd || 0, remarks: tour.remarks || '', is_active: tour.is_active ?? true,
+    program: tour.program || [], included_pack: tour.included_pack || [], excluded_pack: tour.excluded_pack || [],
+    
+    // GESTION DES DÉPARTS (Dates + Vols)
+    departures: (tour.departures || []).map(d => ({
+        id: d.id,
+        departure_date: d.departure_date?.slice(0, 10) || '',
+        return_date: d.return_date?.slice(0, 10) || '',
+        seats_total: d.seats_total || '',
+        seats_remaining: d.seats_remaining || '',
+        is_active: d.is_active ?? true,
+        flights: d.flights || []
+    })),
+
     hotel_options: (tour.hotel_options || []).map(opt => ({
       hotel_name: opt.hotel_name || '', room_type: opt.room_type || '',
       price_double_dzd: opt.price_double_dzd || 0, price_triple_dzd: opt.price_triple_dzd || 0,
@@ -95,23 +104,46 @@ function TourModal({ tour, onClose, onSaved }) {
   
   const [saving, setSaving] = useState(false);
 
-  // ---- FLIGHTS HANDLERS ----
-  function addFlight() {
-    setForm({ ...form, flights: [...form.flights, { from: '', to: '', airline: '', date: '', time: '' }] });
+  // Initialiser un départ vide si création
+  useEffect(() => {
+      if (isNew && form.departures.length === 0) {
+          addDeparture();
+      }
+  }, []);
+
+  // ---- DEPARTURES HANDLERS ----
+  function addDeparture() {
+      setForm({ ...form, departures: [...form.departures, { id: null, departure_date: '', return_date: '', seats_total: '', seats_remaining: '', is_active: true, flights: [] }] });
   }
-  function removeFlight(idx) {
-    setForm({ ...form, flights: form.flights.filter((_, i) => i !== idx) });
+  function removeDeparture(idx) {
+      setForm({ ...form, departures: form.departures.filter((_, i) => i !== idx) });
   }
-  function updateFlight(idx, field, val) {
-    const copy = [...form.flights];
-    copy[idx] = { ...copy[idx], [field]: val };
-    setForm({ ...form, flights: copy });
+  function updateDeparture(idx, field, val) {
+      const copy = [...form.departures];
+      copy[idx] = { ...copy[idx], [field]: val };
+      setForm({ ...form, departures: copy });
+  }
+
+  // ---- FLIGHTS HANDLERS (DANS UN DEPART) ----
+  function addFlight(depIdx) {
+      const copy = [...form.departures];
+      copy[depIdx].flights.push({ from: '', to: '', airline: '', date: '', time: '' });
+      setForm({ ...form, departures: copy });
+  }
+  function removeFlight(depIdx, flightIdx) {
+      const copy = [...form.departures];
+      copy[depIdx].flights = copy[depIdx].flights.filter((_, i) => i !== flightIdx);
+      setForm({ ...form, departures: copy });
+  }
+  function updateFlight(depIdx, flightIdx, field, val) {
+      const copy = [...form.departures];
+      copy[depIdx].flights[flightIdx][field] = val;
+      setForm({ ...form, departures: copy });
   }
 
   // ---- PROGRAM HANDLERS ----
   function addProgramDay() {
-    const nextDay = form.program.length + 1;
-    setForm({ ...form, program: [...form.program, { day: nextDay, title: '', description: '' }] });
+    setForm({ ...form, program: [...form.program, { day: form.program.length + 1, title: '', description: '' }] });
   }
   function removeProgramDay(idx) {
     setForm({ ...form, program: form.program.filter((_, i) => i !== idx).map((day, i) => ({ ...day, day: i + 1 })) });
@@ -122,13 +154,9 @@ function TourModal({ tour, onClose, onSaved }) {
     setForm({ ...form, program: copy });
   }
 
-  // ---- HOTEL & PRICING OPTIONS HANDLERS ----
+  // ---- HOTEL HANDLERS ----
   function addHotelOption() {
-    setForm({ ...form, hotel_options: [...form.hotel_options, {
-      hotel_name: '', room_type: 'Chambre Standard',
-      price_double_dzd: 0, price_triple_dzd: 0, price_single_dzd: 0,
-      price_child_with_bed_dzd: 0, price_child_no_bed_dzd: 0, price_infant_dzd: 0,
-    }] });
+    setForm({ ...form, hotel_options: [...form.hotel_options, { hotel_name: '', room_type: 'Chambre Standard', price_double_dzd: 0, price_triple_dzd: 0, price_single_dzd: 0, price_child_with_bed_dzd: 0, price_child_no_bed_dzd: 0, price_infant_dzd: 0 }] });
   }
   function removeHotelOption(idx) {
     setForm({ ...form, hotel_options: form.hotel_options.filter((_, i) => i !== idx) });
@@ -139,27 +167,15 @@ function TourModal({ tour, onClose, onSaved }) {
     setForm({ ...form, hotel_options: copy });
   }
 
-// Dans resources/js/Pages/Admin/Pages/ToursManager.jsx
-
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
-    
-    // Nettoyer les dates pour n'envoyer que YYYY-MM-DD (évite les erreurs de validation Laravel)
-    const payload = {
-      ...form,
-      departure_date: form.departure_date ? form.departure_date.substring(0, 10) : '',
-      return_date: form.return_date ? form.return_date.substring(0, 10) : '',
-    };
-
     try {
-      if (isNew) await api.post('/tours', payload);
-      else await api.put(`/tours/${tour.id}`, payload);
+      if (isNew) await api.post('/tours', form);
+      else await api.put(`/tours/${tour.id}`, form);
       onSaved();
     } catch (error) {
-      // Afficher l'erreur dans la console pour déboguer si cela plante encore
-      console.error("Erreur de sauvegarde:", error.response?.data || error.message);
-      alert(error.response?.data?.message || "Une erreur est survenue lors de l'enregistrement.");
+      alert(error.response?.data?.message || "Erreur lors de l'enregistrement.");
     } finally {
       setSaving(false);
     }
@@ -168,10 +184,9 @@ function TourModal({ tour, onClose, onSaved }) {
   return (
     <Modal title={isNew ? 'Ajouter un voyage' : 'Modifier le voyage'} onClose={onClose} maxWidth="900px">
       
-      {/* Sélecteur d'onglets interne */}
       <div className="flex border-b border-gray-200 mb-6 overflow-x-auto">
         <TabBtn active={modalTab === 'general'} onClick={() => setModalTab('general')} label="Général" />
-        <TabBtn active={modalTab === 'flights'} onClick={() => setModalTab('flights')} label="✈️ Vols" />
+        <TabBtn active={modalTab === 'departures'} onClick={() => setModalTab('departures')} label="📅 Départs & Vols" />
         <TabBtn active={modalTab === 'program'} onClick={() => setModalTab('program')} label="🗺️ Programme" />
         <TabBtn active={modalTab === 'hotels'} onClick={() => setModalTab('hotels')} label="🏨 Hôtels & Tarifs" />
         <TabBtn active={modalTab === 'inclusions'} onClick={() => setModalTab('inclusions')} label="✅ Inclusions" />
@@ -184,21 +199,11 @@ function TourModal({ tour, onClose, onSaved }) {
           <div className="space-y-4">
             <FormField label="Titre du voyage (FR)" required><input required value={form.title_fr} onChange={(e) => setForm({ ...form, title_fr: e.target.value })} className={inputClass} /></FormField>
             <FormField label="Titre du voyage (AR)"><input dir="rtl" value={form.title_ar} onChange={(e) => setForm({ ...form, title_ar: e.target.value })} className={inputClass} /></FormField>
-            <FormField label="Destination (Pays / Ville)" required><input required value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} className={inputClass} /></FormField>
-            
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Date de départ" required><input type="date" required value={form.departure_date} onChange={(e) => setForm({ ...form, departure_date: e.target.value })} className={inputClass} /></FormField>
-              <FormField label="Date de retour" required><input type="date" required value={form.return_date} onChange={(e) => setForm({ ...form, return_date: e.target.value })} className={inputClass} /></FormField>
+                <FormField label="Destination (Pays / Ville)" required><input required value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} className={inputClass} /></FormField>
+                <FormField label="Prix d'affichage minimum (DZD)" required><input type="number" required value={form.price_dzd} onChange={(e) => setForm({ ...form, price_dzd: e.target.value })} className={inputClass} /></FormField>
             </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <FormField label="Prix d'affichage minimum (DZD)" required><input type="number" required value={form.price_dzd} onChange={(e) => setForm({ ...form, price_dzd: e.target.value })} className={inputClass} /></FormField>
-              <FormField label="Places total"><input type="number" value={form.seats_total} onChange={(e) => setForm({ ...form, seats_total: e.target.value })} className={inputClass} /></FormField>
-              <FormField label="Places restantes"><input type="number" value={form.seats_remaining} onChange={(e) => setForm({ ...form, seats_remaining: e.target.value })} className={inputClass} /></FormField>
-            </div>
-
             <FormField label="Remarques additionnelles"><textarea rows={3} value={form.remarks} onChange={(e) => setForm({ ...form, remarks: e.target.value })} className={inputClass} /></FormField>
-            
             <FormField label="Statut">
               <select value={form.is_active ? '1' : '0'} onChange={(e) => setForm({ ...form, is_active: e.target.value === '1' })} className={inputClass}>
                 <option value="1">Actif</option><option value="0">Inactif</option>
@@ -207,37 +212,69 @@ function TourModal({ tour, onClose, onSaved }) {
           </div>
         )}
 
-        {/* ONGLET 2 : VOLS */}
-        {modalTab === 'flights' && (
+        {/* ONGLET 2 : DÉPARTS & VOLS */}
+        {modalTab === 'departures' && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center"><h4 className="font-bold text-sm">Gestion des vols</h4><button type="button" onClick={addFlight} className="px-3 py-1.5 border rounded-full text-xs bg-gray-50">+ Ajouter un vol</button></div>
+            <div className="flex justify-between items-center bg-blue-50 p-3 rounded-lg">
+                <p className="text-xs text-blue-800">Un voyage peut avoir plusieurs dates de départ. Chaque départ possède son propre plan de vol.</p>
+                <button type="button" onClick={addDeparture} className="px-4 py-2 border border-blue-200 bg-white rounded-full text-xs font-bold text-blue-700 shadow-sm whitespace-nowrap">+ Ajouter une Date</button>
+            </div>
             
-            {form.flights.map((f, i) => (
-              <div key={i} className="border p-4 rounded-xl bg-gray-50 relative space-y-3">
-                <button type="button" onClick={() => removeFlight(i)} className="absolute top-2 right-3 text-red-500 text-xs">Retirer</button>
+            {form.departures.map((dep, dIdx) => (
+              <div key={dIdx} className="border-2 border-gray-200 p-4 rounded-xl bg-white relative space-y-4 shadow-sm">
+                <div className="flex justify-between items-center border-b pb-2">
+                    <h5 className="font-bold text-navy">📅 Départ #{dIdx + 1}</h5>
+                    <button type="button" onClick={() => removeDeparture(dIdx)} className="text-red-500 text-xs font-bold bg-red-50 px-2 py-1 rounded">Retirer cette date</button>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField label="Aéroport départ"><input value={f.from || ''} onChange={(e) => updateFlight(i, 'from', e.target.value)} className={inputClass} /></FormField>
-                  <FormField label="Aéroport arrivée"><input value={f.to || ''} onChange={(e) => updateFlight(i, 'to', e.target.value)} className={inputClass} /></FormField>
+                  <FormField label="Date de départ" required><input type="date" required value={dep.departure_date} onChange={(e) => updateDeparture(dIdx, 'departure_date', e.target.value)} className={inputClass} /></FormField>
+                  <FormField label="Date de retour" required><input type="date" required value={dep.return_date} onChange={(e) => updateDeparture(dIdx, 'return_date', e.target.value)} className={inputClass} /></FormField>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <FormField label="Compagnie"><input value={f.airline || ''} onChange={(e) => updateFlight(i, 'airline', e.target.value)} className={inputClass} /></FormField>
-                  <FormField label="Date"><input type="date" value={f.date || ''} onChange={(e) => updateFlight(i, 'date', e.target.value)} className={inputClass} /></FormField>
-                  <FormField label="Heure"><input type="time" value={f.time || ''} onChange={(e) => updateFlight(i, 'time', e.target.value)} className={inputClass} /></FormField>
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField label="Places total"><input type="number" value={dep.seats_total} onChange={(e) => updateDeparture(dIdx, 'seats_total', e.target.value)} className={inputClass} /></FormField>
+                  <FormField label="Places restantes"><input type="number" value={dep.seats_remaining} onChange={(e) => updateDeparture(dIdx, 'seats_remaining', e.target.value)} className={inputClass} /></FormField>
+                  <FormField label="Statut">
+                      <select value={dep.is_active ? '1' : '0'} onChange={(e) => updateDeparture(dIdx, 'is_active', e.target.value === '1')} className={inputClass}>
+                          <option value="1">Actif (Visible)</option><option value="0">Inactif (Masqué)</option>
+                      </select>
+                  </FormField>
                 </div>
-                <div className="grid grid-cols-2 gap-4 bg-white p-3 rounded-lg border">
-                  <FormField label="Escale (Optionnel)"><input value={f.escale || ''} onChange={(e) => updateFlight(i, 'escale', e.target.value)} placeholder="Ex: Istanbul" className={inputClass} /></FormField>
-                  <FormField label="Durée de l'escale"><input value={f.escale_duration || ''} onChange={(e) => updateFlight(i, 'escale_duration', e.target.value)} placeholder="Ex: 3h 30m" className={inputClass} /></FormField>
+
+                {/* Vols à l'intérieur du départ */}
+                <div className="bg-gray-50 p-4 rounded-xl border">
+                    <div className="flex justify-between items-center mb-3">
+                        <span className="font-bold text-sm text-gray-700">✈️ Plan de vol pour cette date</span>
+                        <button type="button" onClick={() => addFlight(dIdx)} className="text-xs bg-white border px-3 py-1 rounded-full">+ Ajouter un vol</button>
+                    </div>
+
+                    {dep.flights.length === 0 && <p className="text-xs text-gray-400 italic mb-2">Aucun vol configuré pour cette date.</p>}
+
+                    {dep.flights.map((f, fIdx) => (
+                        <div key={fIdx} className="bg-white border p-3 rounded-lg mb-3 relative">
+                            <button type="button" onClick={() => removeFlight(dIdx, fIdx)} className="absolute top-2 right-2 text-red-500 text-xs font-bold">X</button>
+                            <span className="text-[10px] font-bold text-blue-600 block mb-2 uppercase">Vol {fIdx + 1}</span>
+                            <div className="grid grid-cols-2 gap-3 mb-2">
+                                <MiniField label="De (Aéroport)" value={f.from} onChange={(v) => updateFlight(dIdx, fIdx, 'from', v)} />
+                                <MiniField label="Vers (Aéroport)" value={f.to} onChange={(v) => updateFlight(dIdx, fIdx, 'to', v)} />
+                            </div>
+                            <div className="grid grid-cols-3 gap-3 mb-2">
+                                <MiniField label="Compagnie" value={f.airline} onChange={(v) => updateFlight(dIdx, fIdx, 'airline', v)} />
+                                <MiniField label="Date affichée" value={f.date} placeholder="Ex: 30 juillet" onChange={(v) => updateFlight(dIdx, fIdx, 'date', v)} />
+                                <MiniField label="Heure" value={f.time} placeholder="Ex: 06:10 ➔ 10:55" onChange={(v) => updateFlight(dIdx, fIdx, 'time', v)} />
+                            </div>
+                        </div>
+                    ))}
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* ONGLET 3 : PROGRAMME JOUR PAR JOUR */}
+        {/* ONGLET 3 : PROGRAMME */}
         {modalTab === 'program' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center"><h4 className="font-bold text-sm">Itinéraire du voyage</h4><button type="button" onClick={addProgramDay} className="px-3 py-1.5 border rounded-full text-xs bg-gray-50">+ Ajouter un jour</button></div>
-            
             {form.program.map((day, i) => (
               <div key={i} className="border p-4 rounded-xl bg-gray-50 relative space-y-2">
                 <button type="button" onClick={() => removeProgramDay(i)} className="absolute top-2 right-3 text-red-500 text-xs">Retirer</button>
@@ -249,20 +286,17 @@ function TourModal({ tour, onClose, onSaved }) {
           </div>
         )}
 
-        {/* ONGLET 4 : HÔTELS ET GRILLES TARIFAIRES DYNAMIQUES */}
+        {/* ONGLET 4 : HÔTELS & TARIFS */}
         {modalTab === 'hotels' && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center"><h4 className="font-bold text-sm">Hôtels ou combinés d'hôtels et tarifs par chambre</h4><button type="button" onClick={addHotelOption} className="px-3 py-1.5 border rounded-full text-xs bg-gray-50">+ Ajouter une formule hôtel</button></div>
-            
+            <div className="flex justify-between items-center"><h4 className="font-bold text-sm">Hôtels et tarifs par chambre</h4><button type="button" onClick={addHotelOption} className="px-3 py-1.5 border rounded-full text-xs bg-gray-50">+ Ajouter une formule</button></div>
             {form.hotel_options.map((opt, i) => (
               <div key={i} className="border-2 border-gray-100 p-4 rounded-xl bg-white relative space-y-3">
                 <button type="button" onClick={() => removeHotelOption(i)} className="absolute top-2 right-3 text-red-500 text-xs">Retirer</button>
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField label="Nom de l'hôtel (ou combiné d'hôtels)" required><input required value={opt.hotel_name} onChange={(e) => updateHotelOption(i, 'hotel_name', e.target.value)} placeholder="ex: Hilton Cairo + Tivoli 4*" className={inputClass} /></FormField>
-                  <FormField label="Type de chambre / vue"><input value={opt.room_type} onChange={(e) => updateHotelOption(i, 'room_type', e.target.value)} placeholder="ex: Chambre Standard, Vue terre..." className={inputClass} /></FormField>
+                  <FormField label="Nom de l'hôtel" required><input required value={opt.hotel_name} onChange={(e) => updateHotelOption(i, 'hotel_name', e.target.value)} placeholder="ex: Hilton" className={inputClass} /></FormField>
+                  <FormField label="Type de chambre / vue"><input value={opt.room_type} onChange={(e) => updateHotelOption(i, 'room_type', e.target.value)} placeholder="ex: Standard" className={inputClass} /></FormField>
                 </div>
-                
-                {/* Grille des tarifs */}
                 <div className="bg-gray-50 p-3 rounded-lg space-y-2">
                   <div className="text-xs font-bold text-navy border-b pb-1">Grille des Tarifs (DZD / Pers)</div>
                   <div className="grid grid-cols-3 gap-2">
@@ -271,8 +305,8 @@ function TourModal({ tour, onClose, onSaved }) {
                     <MiniPrice label="Triple" value={opt.price_triple_dzd} onChange={(v) => updateHotelOption(i, 'price_triple_dzd', v)} />
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    <MiniPrice label="Enfant (avec lit)" value={opt.price_child_with_bed_dzd} onChange={(v) => updateHotelOption(i, 'price_child_with_bed_dzd', v)} />
-                    <MiniPrice label="Enfant (sans lit)" value={opt.price_child_no_bed_dzd} onChange={(v) => updateHotelOption(i, 'price_child_no_bed_dzd', v)} />
+                    <MiniPrice label="Enf (avec lit)" value={opt.price_child_with_bed_dzd} onChange={(v) => updateHotelOption(i, 'price_child_with_bed_dzd', v)} />
+                    <MiniPrice label="Enf (sans lit)" value={opt.price_child_no_bed_dzd} onChange={(v) => updateHotelOption(i, 'price_child_no_bed_dzd', v)} />
                     <MiniPrice label="Bébé (-2 ans)" value={opt.price_infant_dzd} onChange={(v) => updateHotelOption(i, 'price_infant_dzd', v)} />
                   </div>
                 </div>
@@ -281,15 +315,11 @@ function TourModal({ tour, onClose, onSaved }) {
           </div>
         )}
 
-        {/* ONGLET 5 : INCLUSIONS / EXCLUSIONS */}
+        {/* ONGLET 5 : INCLUSIONS */}
         {modalTab === 'inclusions' && (
           <div className="space-y-4">
-            <FormField label="Ce qui est INCLUS (séparez par des virgules)">
-              <textarea rows={3} value={form.included_pack.join(', ')} onChange={(e) => setForm({ ...form, included_pack: e.target.value.split(',').map(s => s.trim()) })} className={inputClass} placeholder="Billet d'avion, Hébergement, Transferts..." />
-            </FormField>
-            <FormField label="Ce qui est EXCLUS (séparez par des virgules)">
-              <textarea rows={3} value={form.excluded_pack.join(', ')} onChange={(e) => setForm({ ...form, excluded_pack: e.target.value.split(',').map(s => s.trim()) })} className={inputClass} placeholder="Frais de visa, Boissons, Pourboires..." />
-            </FormField>
+            <FormField label="Ce qui est INCLUS (virgules)"><textarea rows={3} value={form.included_pack.join(', ')} onChange={(e) => setForm({ ...form, included_pack: e.target.value.split(',').map(s => s.trim()) })} className={inputClass} /></FormField>
+            <FormField label="Ce qui est EXCLUS (virgules)"><textarea rows={3} value={form.excluded_pack.join(', ')} onChange={(e) => setForm({ ...form, excluded_pack: e.target.value.split(',').map(s => s.trim()) })} className={inputClass} /></FormField>
           </div>
         )}
 
@@ -301,22 +331,15 @@ function TourModal({ tour, onClose, onSaved }) {
   );
 }
 
-// Composants internes spécifiques
+// Helpers
 function TabBtn({ active, onClick, label }) {
-  return (
-    <button type="button" onClick={onClick} className={`px-4 py-2.5 font-bold text-xs uppercase border-b-2 whitespace-nowrap ${active ? 'border-[#C9A84C] text-[#00143C]' : 'border-transparent text-gray-400'}`}>
-      {label}
-    </button>
-  );
+  return <button type="button" onClick={onClick} className={`px-4 py-2.5 font-bold text-xs uppercase border-b-2 whitespace-nowrap ${active ? 'border-[#C9A84C] text-[#00143C]' : 'border-transparent text-gray-400'}`}>{label}</button>;
 }
-
 function MiniPrice({ label, value, onChange }) {
-  return (
-    <div>
-      <label className="text-[10px] text-gray-400 font-semibold block mb-0.5">{label}</label>
-      <input type="number" step="0.01" value={value} onChange={(e) => onChange(e.target.value)} className="w-full border rounded-lg px-2 py-1 text-xs" />
-    </div>
-  );
+  return <div><label className="text-[10px] text-gray-400 font-semibold block mb-0.5">{label}</label><input type="number" step="0.01" value={value} onChange={(e) => onChange(e.target.value)} className="w-full border rounded-lg px-2 py-1 text-xs" /></div>;
+}
+function MiniField({ label, value, placeholder, onChange }) {
+  return <div><label className="text-[10px] text-gray-500 font-semibold block mb-0.5">{label}</label><input type="text" value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className="w-full border rounded-lg px-2 py-1 text-xs" /></div>;
 }
 
 function CoverModal({ tour, onClose, onSaved }) {

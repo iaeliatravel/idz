@@ -81,20 +81,31 @@ function BookingDetailModal({ booking, onClose, onSaved }) {
 
   return (
     <Modal title={`Réservation — ${booking.reference}`} onClose={onClose}>
-      <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-        <div><strong>Client :</strong> {booking.customer_name}</div>
-        <div><strong>Téléphone :</strong> {booking.customer_phone}</div>
-        <div><strong>E-mail :</strong> {booking.customer_email || '—'}</div>
-        <div><strong>Voyage :</strong> {booking.tour?.title_fr || '—'}</div>
-        <div><strong>Destination :</strong> {booking.tour?.destination || '—'}</div>
-        <div><strong>Nombre de places réservées :</strong> {booking.nb_travelers}</div>
-        <div><strong>Date de départ :</strong> {booking.tour?.departure_date ? formatDate(booking.tour.departure_date) : '—'}</div>
+      <div className="grid grid-cols-2 gap-4 text-sm mb-4 bg-gray-50 p-4 rounded-xl">
+        <div><strong className="text-xs text-gray-500 block uppercase">Client</strong> {booking.customer_name}</div>
+        <div><strong className="text-xs text-gray-500 block uppercase">Téléphone</strong> {booking.customer_phone}</div>
+        <div><strong className="text-xs text-gray-500 block uppercase">E-mail</strong> {booking.customer_email || '—'}</div>
+        <div><strong className="text-xs text-gray-500 block uppercase">Nb Places</strong> {booking.nb_travelers} pers.</div>
+        
+        <div className="col-span-2 border-t pt-2 mt-2">
+            <strong className="text-xs text-gray-500 block uppercase">Voyage Sélectionné</strong>
+            <span className="font-bold text-navy">{booking.departure?.tour?.title_fr || '—'}</span> ({booking.departure?.tour?.destination || '—'})
+        </div>
+        <div className="col-span-2">
+            <strong className="text-xs text-gray-500 block uppercase">Date du départ</strong>
+            {booking.departure?.departure_date ? formatDate(booking.departure.departure_date) : '—'} 
+            <span className="text-gray-400 mx-2">au</span> 
+            {booking.departure?.return_date ? formatDate(booking.departure.return_date) : '—'}
+        </div>
       </div>
 
       <form onSubmit={handleSave} className="border-t pt-4">
         <FormField label="Statut">
           <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputClass}>
-            {Object.entries(STATUS_LABELS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+            <option value="nouveau">🆕 Nouveau</option>
+            <option value="contacte">📞 Contacté</option>
+            <option value="confirme">✅ Confirmé</option>
+            <option value="annule">❌ Annulé</option>
           </select>
         </FormField>
         <FormField label="Notes internes de traitement">

@@ -11,11 +11,10 @@ use Illuminate\Support\Str;
 
 class TourAdminController extends Controller
 {
-    // ---- TOURS (Voyages organisés) ----
     public function index()
     {
-        // On charge la relation hotelOptions pour l'affichage et l'édition dans l'admin
-        return response()->json(Tour::with('hotelOptions')->orderByDesc('departure_date')->get());
+        // On charge hotelOptions ET departures, et on trie par ID (car departure_date n'est plus dans tours)
+        return response()->json(Tour::with(['hotelOptions', 'departures'])->orderByDesc('id')->get());
     }
 
     public function store(Request $request)
@@ -26,10 +25,11 @@ class TourAdminController extends Controller
         $tour = DB::transaction(function () use ($data, $request) {
             $tour = Tour::create($data);
             $this->syncHotelOptions($tour, $request->input('hotel_options', []));
+            $this->syncDepartures($tour, $request->input('departures', []));
             return $tour;
         });
 
-        return response()->json($tour->load('hotelOptions'), 201);
+        return response()->json($tour->load(['hotelOptions', 'departures']), 201);
     }
 
     public function update(Request $request, Tour $tour)
@@ -38,9 +38,11 @@ class TourAdminController extends Controller
         
         DB::transaction(function () use ($data, $tour, $request) {
             $tour->update($data);
-            // On supprime les anciennes options d'hôtels et tarifs pour ré-enregistrer les nouvelles
+            
             $tour->hotelOptions()->delete();
             $this->syncHotelOptions($tour, $request->input('hotel_options', []));
+            
+            $this->syncDepartures($tour, $request->input('departures', []));
         });
 
         return response()->json(['success' => true]);
@@ -48,7 +50,12 @@ class TourAdminController extends Controller
 
     public function destroy(Tour $tour)
     {
-        if ($tour->bookings()->exists()) {
+        // Vérifie si des réservations existent pour un des départs de ce voyage
+        $hasBookings = \App\Models\TourBooking::whereHas('departure', function($q) use ($tour) {
+            $q->where('tour_id', $tour->id);
+        })->exists();
+
+        if ($hasBookings) {
             $tour->update(['is_active' => false]);
             return response()->json(['success' => true, 'message' => 'Voyage organisé désactivé car lié à des réservations.']);
         }
@@ -65,11 +72,16 @@ class TourAdminController extends Controller
             $clone->is_active = false;
             $clone->save();
 
-            // Duplication des formules d'hôtels et tarifs associées
             foreach ($tour->hotelOptions as $opt) {
                 $newOpt = $opt->replicate();
                 $newOpt->tour_id = $clone->id;
                 $newOpt->save();
+            }
+
+            foreach ($tour->departures as $dep) {
+                $newDep = $dep->replicate();
+                $newDep->tour_id = $clone->id;
+                $newDep->save();
             }
 
             return $clone;
@@ -87,35 +99,26 @@ class TourAdminController extends Controller
         return response()->json(['success' => true, 'url' => $url]);
     }
 
-private function validateTour(Request $request): array
+    private function validateTour(Request $request): array
     {
         return $request->validate([
             'title_fr' => ['required', 'string', 'max:200'],
             'title_ar' => ['nullable', 'string', 'max:200'],
             'destination' => ['required', 'string', 'max:160'],
-            'departure_date' => ['required', 'date'],
-            'return_date' => ['required', 'date'],
-            'price_dzd' => ['required', 'numeric', 'min:0'], // Doit être requis
-            'price_child_dzd' => ['nullable', 'numeric', 'min:0'], // <-- AJOUT DE CETTE LIGNE
-            'seats_total' => ['nullable', 'integer'],
-            'seats_remaining' => ['nullable', 'integer'],
+            'price_dzd' => ['required', 'numeric', 'min:0'],
+            'price_child_dzd' => ['nullable', 'numeric', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
             'remarks' => ['nullable', 'string'],
-            'flights' => ['nullable', 'array'],
             'program' => ['nullable', 'array'],
             'included_pack' => ['nullable', 'array'],
             'excluded_pack' => ['nullable', 'array'],
         ]);
     }
 
-    /**
-     * Enregistre les options d'hôtels et tarifs du voyage organisé
-     */
     private function syncHotelOptions(Tour $tour, array $options): void
     {
         foreach ($options as $i => $opt) {
             if (empty($opt['hotel_name'])) continue;
-
             $tour->hotelOptions()->create([
                 'hotel_name' => $opt['hotel_name'],
                 'room_type' => $opt['room_type'] ?? null,
@@ -130,10 +133,33 @@ private function validateTour(Request $request): array
         }
     }
 
+    private function syncDepartures(Tour $tour, array $departures): void
+    {
+        $keptIds = [];
+        foreach ($departures as $dep) {
+            if (empty($dep['departure_date']) || empty($dep['return_date'])) continue;
+
+            $record = $tour->departures()->updateOrCreate(
+                ['id' => $dep['id'] ?? null], // Met à jour si l'ID existe, sinon crée
+                [
+                    'departure_date' => substr($dep['departure_date'], 0, 10),
+                    'return_date' => substr($dep['return_date'], 0, 10),
+                    'flights' => $dep['flights'] ?? [],
+                    'seats_total' => $dep['seats_total'] ?? null,
+                    'seats_remaining' => $dep['seats_remaining'] ?? null,
+                    'is_active' => $dep['is_active'] ?? true,
+                ]
+            );
+            $keptIds[] = $record->id;
+        }
+
+        // On masque les départs supprimés au lieu de les détruire (pour garder l'historique des réservations)
+        $tour->departures()->whereNotIn('id', $keptIds)->update(['is_active' => false]);
+    }
+
     // ---- BOOKINGS ----
     public function bookingsIndex()
     {
-        // On charge la relation 'departure' et le 'tour' parent
         return response()->json(TourBooking::with('departure.tour')->orderByDesc('created_at')->get());
     }
 
